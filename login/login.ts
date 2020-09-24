@@ -4,12 +4,14 @@ const input = document.querySelector('input');
 const button = document.getElementById('button');
 const div = document.getElementById('container');
 
+const url = 'http://localhost:3000';
+
 button.onclick = function () {
   const value = input.value;
   if (value) {
     console.log(`This is the input value: ${value}`);
     axios
-      .post('http://localhost:3000/login', {
+      .post(`${url}/login`, {
         name: value,
       })
       .then((response) => {
