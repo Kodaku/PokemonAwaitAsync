@@ -1,10 +1,9 @@
 import axios from 'axios';
+import { url } from '../src/constants/Constants';
 
 const input = document.querySelector('input');
 const button = document.getElementById('button');
 const div = document.getElementById('container');
-
-const url = 'http://localhost:3000';
 
 button.onclick = function () {
   const value = input.value;
