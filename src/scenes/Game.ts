@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { createCharacterAnims } from './animations/characterAnims';
 import { debugDraw } from './utils/debug';
+import { url } from '../constants/Constants';
 import Map from './Map';
 import '../characters/Player';
 import Player from '../characters/Player';
@@ -31,13 +32,11 @@ interface User {
 
 const getUserPromise = (id: number) => {
   return new Promise((resolve: (value: User) => void) => {
-    axios
-      .get(`http://localhost:3000/players/user${id}/move`)
-      .then((response) => {
-        const user = response.data as User;
-        console.log(user);
-        resolve(user);
-      });
+    axios.get(`${url}/players/user${id}/move`).then((response) => {
+      const user = response.data as User;
+      console.log(user);
+      resolve(user);
+    });
   });
 };
 
@@ -47,7 +46,7 @@ const postPosition = (player: User) => {
     // console.log(player[0].userName);
     return new Promise((resolve: (ok: string) => void) => {
       axios
-        .put(`http://localhost:3000/players/user${player[1]}/move`, {
+        .put(`${url}/players/user${player[1]}/move`, {
           userName: player[0].userName,
           userID: player[1],
           userCharacter: player[0].userCharacter,
@@ -68,7 +67,7 @@ const postPosition = (player: User) => {
 
 const getPlayersNumber = () => {
   return new Promise((resolve: (total: number) => void) => {
-    axios.get('http://localhost:3000/players/total').then((response) => {
+    axios.get(`${url}/players/total`).then((response) => {
       const data = response.data;
       resolve(data.total);
     });
