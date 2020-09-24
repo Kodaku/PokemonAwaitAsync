@@ -1,8 +1,7 @@
 import Phaser from 'phaser';
 import axios from 'axios';
 import Game from './Game';
-
-const url = 'http://localhost:3000';
+import { url } from '../constants/Constants';
 
 const getIDPromise = () => {
   return new Promise((resolve: (value: number) => void) => {

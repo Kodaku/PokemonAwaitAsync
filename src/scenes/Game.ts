@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { createCharacterAnims } from './animations/characterAnims';
 import { debugDraw } from './utils/debug';
+import { url } from '../constants/Constants';
 import Map from './Map';
 import '../characters/Player';
 import Player from '../characters/Player';
@@ -28,8 +29,6 @@ interface User {
   anim: string;
   velocity: Velocity;
 }
-
-const url = 'http://localhost:3000';
 
 const getUserPromise = (id: number) => {
   return new Promise((resolve: (value: User) => void) => {
