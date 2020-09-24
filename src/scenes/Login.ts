@@ -2,9 +2,11 @@ import Phaser from 'phaser';
 import axios from 'axios';
 import Game from './Game';
 
+const url = 'http://localhost:3000';
+
 const getIDPromise = () => {
   return new Promise((resolve: (value: number) => void) => {
-    axios.get('http://localhost:3000/players/id').then((response) => {
+    axios.get(`${url}/players/id`).then((response) => {
       const data = response.data;
       const id = parseInt(data.id);
       console.log('User id: ' + id);
@@ -22,7 +24,7 @@ export default class Login extends Phaser.Scene {
   }
 
   preload() {
-    this.sse = new EventSource('http://localhost:3000/test');
+    this.sse = new EventSource(`${url}/test`);
   }
 
   async create() {
