@@ -1,12 +1,5 @@
 import Phaser from 'phaser';
-
-export enum DepthLevels {
-  BOTTOM = 0,
-  CHARACTERS_LEVEL = 1,
-  MEDIUM = 2,
-  TOP = 3,
-  OMNISCENT = 4,
-}
+import { DepthLevels } from '~/enums/depthLevels';
 
 export default class Map {
   private colliders: Phaser.Physics.Arcade.Collider[] = [];

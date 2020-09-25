@@ -1,78 +1,14 @@
 import Phaser from 'phaser';
 import { createCharacterAnims } from './animations/characterAnims';
-import { debugDraw } from './utils/debug';
-import { url } from '../constants/Constants';
+import { characterLoader } from './loaders/charactersLoader';
 import Map from './Map';
 import '../characters/Player';
 import Player from '../characters/Player';
-import axios from 'axios';
-
-enum DepthLevels {
-  BOTTOM = 0,
-  CHARACTERS_LEVEL = 1,
-  MEDIUM = 2,
-  TOP = 3,
-  OMNISCENT = 4,
-}
-
-type Velocity = {
-  vx: number;
-  vy: number;
-};
-
-interface User {
-  userName: string;
-  userID: number;
-  userCharacter: string;
-  x: number;
-  y: number;
-  anim: string;
-  velocity: Velocity;
-}
-
-const getUserPromise = (id: number) => {
-  return new Promise((resolve: (value: User) => void) => {
-    axios.get(`${url}/players/user${id}/move`).then((response) => {
-      const user = response.data as User;
-      console.log(user);
-      resolve(user);
-    });
-  });
-};
-
-const postPosition = (player: User) => {
-  if (player) {
-    // console.log(player[0]);
-    // console.log(player[0].userName);
-    return new Promise((resolve: (ok: string) => void) => {
-      axios
-        .put(`${url}/players/user${player[1]}/move`, {
-          userName: player[0].userName,
-          userID: player[1],
-          userCharacter: player[0].userCharacter,
-          x: player[0].x,
-          y: player[0].y,
-          anim: player[0].anim,
-          velocity: { vx: player[0].velocity.vx, vy: player[0].velocity.vy },
-        })
-        .then((response) => {
-          // console.log(response.data);
-          resolve('success');
-        });
-    });
-  } else {
-    return;
-  }
-};
-
-const getPlayersNumber = () => {
-  return new Promise((resolve: (total: number) => void) => {
-    axios.get(`${url}/players/total`).then((response) => {
-      const data = response.data;
-      resolve(data.total);
-    });
-  });
-};
+import { User } from '~/types/myTypes';
+import { DepthLevels } from '~/enums/depthLevels';
+import { getPlayersNumber, getUserPromise } from '~/promises/getPromises';
+import { postPosition } from '~/promises/postPromises';
+import { characters } from '~/constants/Constants';
 
 export default class Game extends Phaser.Scene {
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
@@ -92,28 +28,9 @@ export default class Game extends Phaser.Scene {
   preload() {
     this.load.image('alto_mare_img', 'alto_mare/alto_mare_extruded.png');
     this.load.tilemapTiledJSON('alto_mare', 'alto_mare/alto_mare.json');
-    this.load.atlas(
-      'nate',
-      'characters/nate.png',
-      'characters/nate_atlas.json'
-    );
-
-    this.load.atlas(
-      'rosa',
-      'characters/rosa.png',
-      'characters/rosa_atlas.json'
-    );
-    this.load.atlas(
-      'hilbert',
-      'characters/hilbert.png',
-      'characters/hilbert_atlas.json'
-    );
-
-    this.load.atlas(
-      'hilda',
-      'characters/hilda.png',
-      'characters/hilda_atlas.json'
-    );
+    for (let i = 0; i < characters.length; i++) {
+      characterLoader(this.load, characters[i]);
+    }
 
     this.cursors = this.input.keyboard.createCursorKeys();
   }
@@ -123,27 +40,8 @@ export default class Game extends Phaser.Scene {
     this.game.scene.remove('login');
     this.totalPlayers = await getPlayersNumber();
     this.user = await getUserPromise(this.id);
-    createCharacterAnims(this.anims, 'nate');
-    createCharacterAnims(this.anims, 'rosa');
-    createCharacterAnims(this.anims, 'hilbert');
-    createCharacterAnims(this.anims, 'hilda');
-    for (let i = 0; i < this.totalPlayers; i++) {
-      if (i != this.id) {
-        console.log('Before await');
-        const userOpponent = await getUserPromise(i);
-        console.log(userOpponent);
-        const spriteOpponent = this.add.player(
-          userOpponent.x,
-          userOpponent.y,
-          userOpponent.userCharacter,
-          userOpponent.anim
-        );
-        spriteOpponent.setDepth(DepthLevels.CHARACTERS_LEVEL);
-        this.players.push(spriteOpponent);
-      } else {
-        this.players.push(this.player);
-      }
-    }
+    this.createCharactersAnims();
+    this.createOpponents();
     this.createAll();
   }
 
@@ -163,6 +61,7 @@ export default class Game extends Phaser.Scene {
     this.map.makeMap();
     this.map.addColliders(this.player);
 
+    //getting bridge and stairs level to make the player pass under them
     this.bridgeStairsLayer = this.map.findLayer('t_bridge_stairs');
     this.bridgeLayer = this.map.findLayer('t_bridges');
     this.map.switchTopColliders(false);
@@ -182,12 +81,29 @@ export default class Game extends Phaser.Scene {
     }
   }
 
-  updateOpponent(userOpponent: User): void {
-    let opponent = this.players[userOpponent.userID];
-    opponent.playerAnim = userOpponent.anim;
-    opponent.x = userOpponent.x + 15;
-    opponent.y = userOpponent.y + 15;
-    opponent.velocity = userOpponent.velocity;
+  private createCharactersAnims() {
+    for (let i = 0; i < characters.length; i++) {
+      createCharacterAnims(this.anims, characters[i]);
+    }
+  }
+
+  private async createOpponents() {
+    for (let i = 0; i < this.totalPlayers; i++) {
+      if (i != this.id) {
+        const userOpponent = await getUserPromise(i);
+        console.log(userOpponent);
+        const spriteOpponent = this.add.player(
+          userOpponent.x,
+          userOpponent.y,
+          userOpponent.userCharacter,
+          userOpponent.anim
+        );
+        spriteOpponent.setDepth(DepthLevels.CHARACTERS_LEVEL);
+        this.players.push(spriteOpponent);
+      } else {
+        this.players.push(this.player);
+      }
+    }
   }
 
   update() {
@@ -239,5 +155,13 @@ export default class Game extends Phaser.Scene {
     this.user.y = this.player.body.y;
     this.user.anim = this.player.getPlayerAnim();
     this.user.velocity = this.player.getVelocity();
+  }
+
+  private updateOpponent(userOpponent: User): void {
+    let opponent = this.players[userOpponent.userID];
+    opponent.playerAnim = userOpponent.anim;
+    opponent.x = userOpponent.x + 15;
+    opponent.y = userOpponent.y + 15;
+    opponent.velocity = userOpponent.velocity;
   }
 }
