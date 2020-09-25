@@ -7,6 +7,8 @@ const div = document.getElementById('container');
 
 button.onclick = function () {
   const value = input.value;
+  const newUrl =
+    'http://localhost:1234/index.html?name=' + encodeURIComponent(value);
   if (value) {
     console.log(`This is the input value: ${value}`);
     axios
@@ -15,7 +17,10 @@ button.onclick = function () {
       })
       .then((response) => {
         console.log(response.data);
-        document.location.href = 'index.html';
+        document.location.href = newUrl;
+      })
+      .catch((err) => {
+        console.log(err);
       });
   } else {
     let p = document.createElement('p');
