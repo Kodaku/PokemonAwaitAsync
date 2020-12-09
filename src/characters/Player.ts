@@ -24,6 +24,7 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
   public playerName!: string;
   public playerAnim: string;
   public velocity: Velocity;
+  public busy: boolean;
   constructor(
     scene: Phaser.Scene,
     x: number,
@@ -36,10 +37,11 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     this.playerAnim = frame as string;
     this.playerKey = texture;
     this.velocity = { vx: 0, vy: 0 };
+    this.busy = false;
   }
 
   public setPlayerName(newName: string): void {
-    this.name = newName;
+    this.playerName = newName;
   }
 
   // get playerKey(): string {
@@ -59,6 +61,14 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
       vx: this.velocity.vx,
       vy: this.velocity.vy,
     };
+  }
+
+  public setBusy(busy: boolean): void {
+    this.busy = busy;
+  }
+
+  public getBusy(): boolean {
+    return this.busy;
   }
 
   setEmotion(emotion: Phaser.GameObjects.Sprite) {

@@ -6,7 +6,7 @@ export const getUserPromise = (id: number) => {
   return new Promise((resolve: (value: User) => void) => {
     axios.get(`${url}/players/user/move/${id}`).then((response) => {
       const user = response.data as User;
-      console.log(user);
+      // console.log(user);
       resolve(user);
     });
   });
@@ -17,6 +17,15 @@ export const getPlayersNumber = () => {
     axios.get(`${url}/players/total`).then((response) => {
       const data = response.data;
       resolve(data.total);
+    });
+  });
+};
+
+export const resetAllReplys = (coupleID: number) => {
+  return new Promise((resolve: (value) => void) => {
+    axios.get(`${url}/couples/reset-replys/${coupleID}`).then((response) => {
+      console.log(response.data);
+      resolve(response.data);
     });
   });
 };

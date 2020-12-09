@@ -40,11 +40,13 @@ export default class Map {
     }
   }
 
-  public addColliders(sprite: Phaser.Physics.Arcade.Sprite): void {
+  public addColliders(sprites: Phaser.Physics.Arcade.Sprite[]): void {
     for (let layer of this.mapLayers) {
-      const collider = this.scene.physics.add.collider(sprite, layer);
-      collider.name = layer.name;
-      this.colliders.push(collider);
+      for (let i = 0; i < sprites.length; i++) {
+        const collider = this.scene.physics.add.collider(sprites[i], layer);
+        collider.name = layer.name;
+        this.colliders.push(collider);
+      }
     }
   }
 

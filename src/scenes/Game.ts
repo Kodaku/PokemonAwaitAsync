@@ -4,11 +4,30 @@ import { characterLoader } from './loaders/charactersLoader';
 import Map from './Map';
 import '../characters/Player';
 import Player from '../characters/Player';
-import { User } from '~/types/myTypes';
-import { DepthLevels } from '~/enums/depthLevels';
-import { getPlayersNumber, getUserPromise } from '~/promises/getPromises';
+import { Couple, Reference, User } from '~/types/myTypes';
+import {
+  DepthLevels,
+  IconSelectable,
+  PartyMenuState,
+} from '~/enums/depthLevels';
+import {
+  getPlayersNumber,
+  getUserPromise,
+  resetAllReplys,
+} from '~/promises/getPromises';
 import { postPosition } from '~/promises/postPromises';
-import { characters } from '~/constants/Constants';
+import { characters, url } from '~/constants/Constants';
+import Text from '~/windowskins/Text';
+import { sceneEvents } from '../events/EventCenter';
+import { getOpponentPromise } from '~/promises/couplePromises';
+import MessageBoxScene from './MessageBoxScene';
+import BagMenuUp from '~/menu_scenes/bag_menu/BagMenuUp';
+import PartyMenuUp from '~/menu_scenes/party_menu/PartyMenuUp';
+
+enum GameState {
+  PLAY,
+  MENU,
+}
 
 export default class Game extends Phaser.Scene {
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
@@ -20,46 +39,168 @@ export default class Game extends Phaser.Scene {
   private id!: number;
   private totalPlayers!: number;
   private user!: User;
+  private opponent!: User;
+  private couple!: Couple;
+  private coupleID!: number;
+  private knowOpponent: boolean = false;
   private players: Player[] = [];
+  private texts: Text[] = [];
+  private messageBoxScene!: MessageBoxScene;
+  private displayingText: boolean = false;
+  private alreadyEncountered: boolean = false;
+  private colliders: Phaser.Physics.Arcade.Collider[] = [];
+  private gameState: GameState = GameState.PLAY;
+  private fadeRect!: Phaser.GameObjects.Rectangle;
+  private menuCursor: number = 0;
+  private positionInterval!: number;
+  private playersPositionIntervals: number[] = [];
+  private battleInterval!: number;
   constructor() {
     super('game');
   }
 
   preload() {
-    this.load.image('alto_mare_img', 'alto_mare/alto_mare_extruded.png');
-    this.load.tilemapTiledJSON('alto_mare', 'alto_mare/alto_mare.json');
-    for (let i = 0; i < characters.length; i++) {
-      characterLoader(this.load, characters[i]);
-    }
-
     this.cursors = this.input.keyboard.createCursorKeys();
   }
 
-  async create(data: { id: number }) {
-    this.id = data.id;
-    this.game.scene.remove('login');
-    this.totalPlayers = await getPlayersNumber();
-    this.user = await getUserPromise(this.id);
-    this.createCharactersAnims();
-    this.createOpponents();
-    this.createAll();
-  }
+  async create(data: { user: User; sceneName: string }) {
+    this.user = data.user;
+    // console.log(this.user);
+    this.id = this.user.userID;
+    this.scene.remove(data.sceneName);
+    this.couple = await getOpponentPromise(this.id);
+    console.log(this.couple);
+    this.opponent = this.couple.opponent;
+    this.coupleID = this.couple.coupleID;
+    this.knowOpponent = this.couple.knowOpponent;
+    sceneEvents.on(
+      'display-text',
+      () => {
+        this.displayingText = true;
+      },
+      this
+    );
 
-  private createAll() {
+    sceneEvents.on(
+      'end-text',
+      () => {
+        this.displayingText = false;
+      },
+      this
+    );
+    sceneEvents.on('S-pressed-play', this.requireMenu, this);
+    //make sense to pass the coupleID to the MessageBoxScene because it's important in order to wait for opponent's answers
+    this.messageBoxScene = new MessageBoxScene(this, this.coupleID);
+    this.messageBoxScene.create();
+    // console.log(this.opponent);
+    this.totalPlayers = await getPlayersNumber();
+    this.createCharactersAnims();
     this.player = this.add.player(
       this.user.x,
       this.user.y,
       this.user.userCharacter,
       this.user.anim
     );
-
+    this.player.setBusy(false);
     this.player.setPlayerName(this.user.userName);
-    console.log(this.players);
+    this.player.setDepth(DepthLevels.CHARACTERS_LEVEL);
 
+    await this.createOpponents();
+    await this.createTexts();
+    this.createAll();
+    this.input.keyboard.on('keydown-S', () => {
+      if (this.gameState == GameState.PLAY) {
+        this.gameState = GameState.MENU;
+        this.player.setBusy(true);
+        sceneEvents.emit('S-pressed-play');
+      }
+    });
+    this.input.keyboard.on('keydown-R', () => {
+      if (this.gameState == GameState.MENU) {
+        this.menuCursor++;
+        if (this.menuCursor >= 6) {
+          this.menuCursor--;
+        }
+      }
+    });
+    this.input.keyboard.on('keydown-L', () => {
+      if (this.gameState == GameState.MENU) {
+        this.menuCursor--;
+        if (this.menuCursor < 0) {
+          this.menuCursor++;
+        }
+      }
+    });
+    this.input.keyboard.on('keydown-U', () => {
+      if (this.gameState == GameState.MENU) {
+        this.menuCursor -= 2;
+        if (this.menuCursor < 0) {
+          this.menuCursor += 2;
+        }
+      }
+    });
+    this.input.keyboard.on('keydown-D', () => {
+      if (this.gameState == GameState.MENU) {
+        this.menuCursor += 2;
+        if (this.menuCursor >= 6) {
+          this.menuCursor -= 2;
+        }
+      }
+    });
+    this.input.keyboard.on('keydown-ENTER', () => {
+      if (this.gameState == GameState.MENU) {
+        switch (this.menuCursor) {
+          case IconSelectable.POKEMON: {
+            this.removeEventsAndClearIntervals();
+            this.scene.add('party-menu-up', PartyMenuUp, true, {
+              user: this.user,
+              sceneName: 'game',
+              state: PartyMenuState.DISPLAY,
+            });
+            break;
+          }
+          case IconSelectable.BAG: {
+            this.removeEventsAndClearIntervals();
+            this.scene.add('bag-menu-up', BagMenuUp, true, {
+              user: this.user,
+              sceneName: 'game',
+            });
+            break;
+          }
+        }
+      }
+    });
+  }
+
+  private removeEventsAndClearIntervals() {
+    sceneEvents.off('display-text');
+    sceneEvents.off('end-text');
+    sceneEvents.off('S-pressed-play');
+    sceneEvents.off('X-pressed-menu');
+    this.messageBoxScene.turnOff();
+    this.input.keyboard.off('keydown-S');
+    this.input.keyboard.off('keydown-X');
+    this.input.keyboard.off('keydown-R');
+    this.input.keyboard.off('keydown-L');
+    this.input.keyboard.off('keydown-U');
+    this.input.keyboard.off('keydown-D');
+    this.input.keyboard.off('keydown-ENTER');
+    clearInterval(this.battleInterval);
+    clearInterval(this.positionInterval);
+    this.playersPositionIntervals.forEach((interval) => {
+      clearInterval(interval);
+    });
+  }
+
+  private requireMenu() {
+    this.user.busy = true;
+  }
+
+  private async createAll() {
     this.map = new Map(this);
 
     this.map.makeMap();
-    this.map.addColliders(this.player);
+    this.map.addColliders(this.players);
 
     //getting bridge and stairs level to make the player pass under them
     this.bridgeStairsLayer = this.map.findLayer('t_bridge_stairs');
@@ -68,16 +209,38 @@ export default class Game extends Phaser.Scene {
 
     this.cameras.main.startFollow(this.player);
 
-    setInterval(postPosition, 150, [this.user, this.id]);
+    this.positionInterval = setInterval(postPosition, 150, [
+      this.user,
+      this.id,
+    ]);
     for (let i = 0; i < this.totalPlayers; i++) {
       if (i != this.id) {
         let t = this as Game;
-        setInterval(function () {
-          getUserPromise(i).then((data) => {
-            t.updateOpponent(data);
-          });
+        this.playersPositionIntervals[i] = setInterval(function () {
+          if (!t.displayingText) {
+            getUserPromise(i).then((data) => {
+              t.updateOpponent(data);
+            });
+          }
         }, 150);
       }
+    }
+    //every minute players can retry to battle each other
+    this.battleInterval = setInterval(() => {
+      if (!this.displayingText) {
+        resetAllReplys(this.coupleID).then((data) => {
+          this.alreadyEncountered = false;
+          console.log(data);
+        });
+      }
+    }, 60000);
+
+    if (!this.knowOpponent) {
+      sceneEvents.emit(
+        'unknown-opponent',
+        this.makeReference(this.player),
+        this.opponent
+      );
     }
   }
 
@@ -91,14 +254,22 @@ export default class Game extends Phaser.Scene {
     for (let i = 0; i < this.totalPlayers; i++) {
       if (i != this.id) {
         const userOpponent = await getUserPromise(i);
-        console.log(userOpponent);
         const spriteOpponent = this.add.player(
           userOpponent.x,
           userOpponent.y,
           userOpponent.userCharacter,
           userOpponent.anim
         );
+        spriteOpponent.setPlayerName(userOpponent.userName);
         spriteOpponent.setDepth(DepthLevels.CHARACTERS_LEVEL);
+        this.colliders[i] = this.physics.add.collider(
+          this.player,
+          spriteOpponent,
+          this.checkOpponent,
+          undefined,
+          this
+        );
+        this.colliders[i].overlapOnly = true;
         this.players.push(spriteOpponent);
       } else {
         this.players.push(this.player);
@@ -106,48 +277,120 @@ export default class Game extends Phaser.Scene {
     }
   }
 
-  update() {
-    if (!this.player || !this.cursors || !this.players) {
-      return;
-    }
-
-    this.player.update(this.cursors);
-
-    for (let i = 0; i < this.players.length; i++) {
-      if (i != this.id) {
-        const opponent = this.players[i];
-        opponent.anims.play(opponent.playerAnim, true);
+  private checkOpponent(
+    obj1: Phaser.GameObjects.GameObject,
+    obj2: Phaser.GameObjects.GameObject
+  ) {
+    if (!this.alreadyEncountered) {
+      this.alreadyEncountered = true;
+      const player = obj1 as Player;
+      const opponent = obj2 as Player;
+      this.player.setVelocity(0, 0);
+      opponent.setVelocity(0, 0);
+      if (
+        opponent.playerName === this.opponent.userName &&
+        !this.opponent.busy
+      ) {
+        this.makeSSE();
+        sceneEvents.emit(
+          'opponent-encounter',
+          this.makeReference(player),
+          opponent.playerName
+        );
       }
     }
+  }
 
-    if (
-      this.bridgeStairsLayer.getTileAtWorldXY(
-        this.player.body.x,
-        this.player.body.y
-      ) != null
-    ) {
-      this.onStairs = true;
-    } else if (
-      this.bridgeLayer.getTileAtWorldXY(
-        this.player.body.x,
-        this.player.body.y
-      ) != null &&
-      this.onStairs
-    ) {
-    } else {
-      this.onStairs = false;
-    }
+  private makeSSE() {
+    const sse = new EventSource(`${url}/couples/replys/get/${this.coupleID}`);
+    sse.addEventListener('message', (ev) => {
+      console.log(ev.data);
+      sceneEvents.emit('received-replys');
+      sse.close();
+    });
+  }
 
-    if (this.onStairs) {
-      this.player.setDepth(DepthLevels.OMNISCENT);
-      this.map.switchBottomColliders(false);
-      this.map.switchTopColliders(true);
-    } else {
-      this.player.setDepth(DepthLevels.CHARACTERS_LEVEL);
-      this.map.switchBottomColliders(true);
-      this.map.switchTopColliders(false);
+  private makeReference(player: Player): Reference {
+    const reference: Reference = {
+      x: player.body.x,
+      y: player.body.y,
+      width: player.body.width,
+      height: player.body.height,
+      referenceName: player.playerKey,
+    };
+
+    return reference;
+  }
+
+  private async createTexts() {
+    console.log(this.player);
+    for (let i = 0; i < this.totalPlayers; i++) {
+      this.texts[i] = new Text(
+        this,
+        this.players[i].playerName,
+        0,
+        -this.players[i].height
+      );
+      this.texts[i].setTextPosition(
+        this.players[i].body.x,
+        this.players[i].body.y
+      );
     }
-    this.updateUser();
+  }
+
+  async update() {
+    if (!this.player || !this.cursors || !this.players[0] || !this.texts[0]) {
+      return;
+    }
+    if (this.gameState === GameState.PLAY) {
+      this.texts[this.id].setTextPosition(this.player.x, this.player.y);
+
+      if (this.displayingText) {
+        this.messageBoxScene.displayText();
+        return;
+      }
+
+      this.player.update(this.cursors);
+
+      for (let i = 0; i < this.players.length; i++) {
+        if (i != this.id) {
+          const opponent = this.players[i];
+          opponent.anims.play(opponent.playerAnim, true);
+          opponent.setVelocity(opponent.velocity.vx, opponent.velocity.vy);
+          this.texts[i].setTextPosition(opponent.x, opponent.y);
+        }
+      }
+
+      if (
+        this.bridgeStairsLayer.getTileAtWorldXY(
+          this.player.body.x,
+          this.player.body.y
+        ) != null
+      ) {
+        this.onStairs = true;
+      } else if (
+        this.bridgeLayer.getTileAtWorldXY(
+          this.player.body.x,
+          this.player.body.y
+        ) != null &&
+        this.onStairs
+      ) {
+      } else {
+        this.onStairs = false;
+      }
+
+      if (this.onStairs) {
+        this.player.setDepth(DepthLevels.OMNISCENT);
+        this.map.switchBottomColliders(false);
+        this.map.switchTopColliders(true);
+      } else {
+        this.player.setDepth(DepthLevels.CHARACTERS_LEVEL);
+        this.map.switchBottomColliders(true);
+        this.map.switchTopColliders(false);
+      }
+      this.updateUser();
+    } else if (this.gameState == GameState.MENU) {
+    }
   }
 
   private updateUser(): void {
@@ -155,6 +398,7 @@ export default class Game extends Phaser.Scene {
     this.user.y = this.player.body.y;
     this.user.anim = this.player.getPlayerAnim();
     this.user.velocity = this.player.getVelocity();
+    this.user.busy = this.player.getBusy();
   }
 
   private updateOpponent(userOpponent: User): void {
@@ -163,5 +407,6 @@ export default class Game extends Phaser.Scene {
     opponent.x = userOpponent.x + 15;
     opponent.y = userOpponent.y + 15;
     opponent.velocity = userOpponent.velocity;
+    this.opponent = userOpponent;
   }
 }
