@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { pokedexNumbers } from '~/constants/Constants';
-import BattleScene from './BattleScene';
+import BattleScene from './battle_upper/BattleScene';
 
 export default class BattlePreloader extends Phaser.Scene {
   constructor() {

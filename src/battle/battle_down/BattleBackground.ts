@@ -1,6 +1,5 @@
 import Phaser from 'phaser';
 import BattleBag from './BattleBag';
-import BattleMenu from './BattleMenu';
 
 export default class BattleBackground extends Phaser.Scene {
   constructor() {
