@@ -18,11 +18,11 @@ const reduceItemQuantityPromise = (
   index: string,
   pokemonIndex: number
 ) => {
-  return new Promise((resolve: () => void) => {
+  return new Promise((resolve: (value: string) => void) => {
     axios
       .get(`${url}/players/items/${id}/${index}/${pokemonIndex}`)
       .then((response) => {
-        resolve();
+        resolve('success');
       });
   });
 };
@@ -32,12 +32,12 @@ const switchRequestPromise = (
   fromIndex: number,
   toIndex: number
 ) => {
-  return new Promise((resolve: () => void) => {
+  return new Promise((resolve: (value: string) => void) => {
     axios
       .get(`${url}/players/switchpokemon/${id}/${fromIndex}/${toIndex}`)
       .then((response) => {
         console.log(response.data);
-        resolve();
+        resolve('success');
       });
   });
 };
@@ -47,11 +47,11 @@ const increaseItemQuantityPromise = (
   index: string,
   pokemonIndex: number
 ) => {
-  return new Promise((resolve: () => void) => {
+  return new Promise((resolve: (value: string) => void) => {
     axios
       .get(`${url}/players/itemsincrease/${id}/${index}/${pokemonIndex}`)
       .then((response) => {
-        resolve();
+        resolve('success');
       });
   });
 };

@@ -114,6 +114,13 @@ export const itemsText: string[] = [
   'KEY ITEMS',
 ];
 
+export const battleItemsText: string[] = [
+  'IncreaseHealth',
+  'PokeBall',
+  'Cure',
+  'IncreaseStats',
+];
+
 export const itemsIndexes: string[] = [
   '001',
   '002',
@@ -219,4 +226,10 @@ export const pokemon_types = [
   'NORMAL',
   'ROCK',
   'STEEL',
+];
+
+export const relevantMessageTypes: string[] = [
+  'INCREASE-HEALTH',
+  'ATTACK',
+  'SWITCH',
 ];

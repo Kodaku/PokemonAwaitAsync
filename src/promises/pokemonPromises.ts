@@ -25,6 +25,7 @@ export const getPokemon = (pokemonNumber: string) => {
           resistances: data.resistances,
           moveNames: data.moveNames,
           ps: parseInt(data.ps),
+          maxPs: parseInt(data.ps),
           attack: parseInt(data.attack),
           defense: parseInt(data.defense),
           specialAttack: parseInt(data.specialAttack),

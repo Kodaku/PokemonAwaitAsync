@@ -1,15 +1,15 @@
 import Phaser from 'phaser';
-import { pokemonFrames, url } from '~/constants/Constants';
+import { relevantMessageTypes, url } from '~/constants/Constants';
 import { createPokeBallAnim } from '~/scenes/animations/pokeBallAnims';
-import {
-  createPokemonBackAnim,
-  createPokemonFrontAnim,
-} from '~/scenes/animations/pokemonAnims';
 import axios from 'axios';
 import MessageBoxScene from '~/scenes/MessageBoxScene';
 import { sceneEvents } from '~/events/EventCenter';
 import BattleSceneGraphics from './BattleSceneGraphics';
 import BattleSceneHealthManager from './BattleSceneHealthManager';
+import BattleSceneIntroManager from './BattleSceneIntroManager';
+import BattleScenePokemonManager from './BattleScenePokemonManager';
+import { Pokemon, TeamMember, User } from '~/types/myTypes';
+import { getPokemons, getTeamPromise } from '~/promises/pokemonPromises';
 
 enum BattleState {
   BATTLE_INTRO,
@@ -22,27 +22,122 @@ enum BattleState {
   PLAYER_ATTACK_FRONT,
   PLAYER_ATTACK_BACK,
   HIT_ENEMY,
-  DECREASE_ENEMY_HEALTH,
   ENEMY_ATTACK_FRONT,
   ENEMY_ATTACK_BACK,
   HIT_PLAYER,
-  DECREASE_PLAYER_HEALTH,
   SWITCH_PLAYER_POKEMON,
   SEND_OUT_PLAYER_POKEMON,
+  SEND_OUT_OPPONENT_POKEMON,
   PLAYER_FAINTED,
   ENEMY_FAINTED,
+  ENEMY_FAINTED_BATTLE,
+  SEND_OUT_OPPONENT_POKEMON_FAINTED,
 }
 
-const pokeBalls = ['poke-ball', 'm&aster-ball', 'mega-ball', 'ultra-ball'];
+const pokeBalls = ['poke-ball', 'master-ball', 'mega-ball', 'ultra-ball'];
 
-const notifyLowerPromise = (pokemonState: string) => {
+const notifyLowerPromise = (pokemonState: string, id: number) => {
   return new Promise((resolve: (value: string) => void) => {
     axios
-      .get(`${url}/real-time/notify-lower/${pokemonState}`)
+      .get(`${url}/real-time/notify-lower/${pokemonState}/${id}`)
       .then((response) => {
         console.log('Successfully sent to lower');
         console.log(response.data);
         resolve('success');
+      });
+  });
+};
+
+const sendPlayerPokemonIndex = (pokemonIndex: number, id: number) => {
+  return new Promise((resolve: (value: string) => void) => {
+    axios
+      .post(`${url}/battle/pokemon-index/${pokemonIndex}/${id}`)
+      .then((response) => {
+        console.log('Successfully sent');
+        console.log(response.data);
+        resolve('success');
+      });
+  });
+};
+
+const sendBattleIntroNotification = (id: number) => {
+  return new Promise((resolve: (value: string) => void) => {
+    axios.post(`${url}/battle/notify-intro-upper/${id}`).then((response) => {
+      console.log('Successfully sent to other player');
+      console.log(response.data);
+      resolve('success');
+    });
+  });
+};
+
+const sendBattleIntroNotificationToLower = (id: number) => {
+  return new Promise((resolve: (value: string) => void) => {
+    axios.post(`${url}/battle/notify-intro-lower/${id}`).then((response) => {
+      console.log('Successfully sent to lower');
+      console.log(response.data);
+      resolve('success');
+    });
+  });
+};
+
+const sendBattleChoiceNotificationToLower = (id: number) => {
+  return new Promise((resolve: (value: string) => void) => {
+    axios.post(`${url}/battle/notify-choice-lower/${id}`).then((response) => {
+      console.log('Successfully sent to lower');
+      console.log(response.data);
+      resolve(response.data);
+    });
+  });
+};
+
+const sendResetIntroData = () => {
+  return new Promise((resolve: (value: string) => void) => {
+    axios.post(`${url}/battle/reset-intro-data`).then((response) => {
+      console.log('Successfully sent');
+      console.log(response.data);
+      resolve('success');
+    });
+  });
+};
+
+const sendResetChoiceData = () => {
+  return new Promise((resolve: (value: string) => void) => {
+    axios.post(`${url}/battle/reset-choice-data`).then((response) => {
+      console.log('Successfully reset');
+      console.log(response.data);
+      resolve('success');
+    });
+  });
+};
+
+const getOpponentChoicePromise = (opponentID: number) => {
+  return new Promise((resolve: (value: string) => void) => {
+    axios.get(`${url}/battle/get-choice/${opponentID}`).then((response) => {
+      console.log('Successfully received');
+      console.log(response.data);
+      resolve(response.data.data);
+    });
+  });
+};
+
+const getSerialNumber = () => {
+  return new Promise((resolve: (value: number) => void) => {
+    axios.get(`${url}/battle/get-serial-number`).then((response) => {
+      console.log('Successfully received');
+      console.log(response.data);
+      resolve(parseInt(response.data.serial));
+    });
+  });
+};
+
+const sendPokemonFainted = (id: number, fainted: string) => {
+  return new Promise((resolve: (value: number) => void) => {
+    axios
+      .post(`${url}/battle/pokemon-fainted/${fainted}/${id}`)
+      .then((response) => {
+        console.log('Successfully received');
+        console.log(response.data);
+        resolve(parseInt(response.data.serial));
       });
   });
 };
@@ -52,185 +147,137 @@ const hpRectMaxWidth = 69;
 export default class BattleScene extends Phaser.Scene {
   private state!: BattleState;
   private displayText: boolean = false;
-  private frameQuantitiesBack: number[] = [];
-  private frameQuantitiesFront: number[] = [];
   private battleMessage!: MessageBoxScene;
-  //Intro
-  private playerStartX!: number;
-  private playerBaseStartX!: number;
-  private opponentStartX!: number;
-  private opponentBaseStartX!: number;
-  private playerEndX!: number;
-  private playerBaseEndX!: number;
-  private opponentEndX!: number;
-  private opponentBaseEndX!: number;
-  private playerImage!: Phaser.GameObjects.Image;
-  private opponentImage!: Phaser.GameObjects.Image;
-  private playerBase!: Phaser.GameObjects.Image;
-  private opponentBase!: Phaser.GameObjects.Image;
-  private playerPartyBar!: Phaser.GameObjects.Image;
-  private opponentPartyBar!: Phaser.GameObjects.Image;
-  private playerPartyBallStartX: number[] = [];
-  private playerPartyBallEndX!: number;
-  private opponentPartyBallStartX: number[] = [];
-  private opponentPartyBallEndX!: number;
-  private playerPartyBalls: Phaser.GameObjects.Image[] = [];
-  private opponentPartyBalls: Phaser.GameObjects.Image[] = [];
-  //Heath
-  private hpRect!: Phaser.GameObjects.Rectangle;
-  private healthText!: Phaser.GameObjects.Text;
-  private opponentHpRect!: Phaser.GameObjects.Rectangle;
   //Z Pression
   private zPressed: boolean = false;
   private waitZ: boolean = false;
   private timeoutCount: number = 0;
   private timeout!: number;
-  //Attack
-  private playerPokemon!: Phaser.GameObjects.Sprite;
-  private opponentPokemon!: Phaser.GameObjects.Sprite;
-  private playerPokemonStartX!: number;
-  private playerPokemonCurrentX!: number;
-  private playerPokemonEndX!: number;
-  private opponentPokemonStartX!: number;
-  private opponentPokemonCurrentX!: number;
-  private opponentPokemonEndX!: number;
+  private battleGraphics!: BattleSceneGraphics;
+  private introManager!: BattleSceneIntroManager;
+  private healthManager!: BattleSceneHealthManager;
+  private pokemonManager!: BattleScenePokemonManager;
+  private playerTeamMembers: TeamMember[] = [];
+  private opponentTeamMembers: TeamMember[] = [];
+  private playerPokemons: Pokemon[] = [];
+  private opponentPokemons: Pokemon[] = [];
+  private user!: User;
+  private opponent!: User;
+  private readData: boolean = false;
+  private playerPokemonIndex: number = 0;
+  private opponentPokemonIndex: number = 0;
+  private sentIntroNotification: boolean = false;
+  private turn!: number;
+  private playerData!: string;
+  private opponentData!: string;
   constructor() {
     super('battle-scene');
   }
 
   preload() {}
 
-  create(data: { sceneToRemove: string }) {
+  async create(data: { sceneToRemove: string; user: User; opponent: User }) {
     this.scene.remove(data.sceneToRemove);
+    this.user = data.user;
+    this.opponent = data.opponent;
     this.state = BattleState.BATTLE_INTRO;
-    //TODO: Create two intro manager: 1 for player and 1 for opponent
-    this.initializePlayerPositions();
-    this.initializeOpponentPositions();
+    this.playerTeamMembers = await getTeamPromise(this.user.userID);
+    this.opponentTeamMembers = await getTeamPromise(this.opponent.userID);
+    this.playerPokemons = await getPokemons(this.playerTeamMembers);
+    this.opponentPokemons = await getPokemons(this.opponentTeamMembers);
+    console.log('Battle Scene Pokemons: ', this.playerPokemons);
+    this.readData = true;
+    this.introManager = new BattleSceneIntroManager(this);
+    this.healthManager = new BattleSceneHealthManager(this);
+    this.pokemonManager = new BattleScenePokemonManager(this);
+    this.pokemonManager.createAnims();
+    this.introManager.initializePlayerPosition();
+    this.introManager.initializeOpponentPosition();
     this.createAnims();
     const bgNumber = Math.floor(Math.random() * 6);
-    let playerPokemonIndex = Math.floor(Math.random() * pokemonFrames.length);
-    let enemyPokemonIndex = Math.floor(Math.random() * pokemonFrames.length);
-
     //Message Dialogue
     this.battleMessage = new MessageBoxScene(this);
-    this.battleMessage.create();
+    this.battleMessage.createBattleMessage();
 
-    const battleGraphics: BattleSceneGraphics = new BattleSceneGraphics(this);
-
-    const bg = battleGraphics.createBackground(bgNumber);
-    // add player-base
-    this.playerBase = battleGraphics.createPlayerBase(
+    this.battleGraphics = new BattleSceneGraphics(this);
+    this.introManager.createIntroGraphics(
+      this.battleGraphics,
       bgNumber,
-      this.playerBaseStartX
+      this.user.userCharacter,
+      this.opponent.userCharacter
     );
-    // add enemy-base
-    this.opponentBase = battleGraphics.createOpponentBase(
-      bgNumber,
-      this.opponentBaseStartX
+    this.pokemonManager.createPokemonGraphics(
+      this.battleGraphics,
+      this.playerPokemons[this.playerPokemonIndex],
+      this.opponentPokemons[this.opponentPokemonIndex]
     );
-    //add player image
-    this.playerImage = battleGraphics.createPlayerImage(this.playerStartX);
-    // add enemy image
-    this.opponentImage = battleGraphics.createOpponentImage(
-      this.opponentStartX
+    this.healthManager.createHealthGraphics(
+      this.battleGraphics,
+      this.playerPokemons[this.playerPokemonIndex],
+      this.opponentPokemons[this.opponentPokemonIndex]
     );
-    // barra sfere giocatore
-    this.playerPartyBar = battleGraphics.createPlayerPartyBar();
-    //barra sfere avversario
-    this.opponentPartyBar = battleGraphics.createOpponentPartyBar();
-    // sfere giocatore
-    const obj = battleGraphics.createPlayerPartyBalls(this.playerStartX);
-    this.playerPartyBallStartX = obj.playerPartyBallsStartX;
-    this.playerPartyBalls = obj.playerPartyBalls;
-    // sfere avversario
-    const obj2 = battleGraphics.createOpponentPartyBalls(this.opponentStartX);
-    this.opponentPartyBallStartX = obj2.opponentPartyBallStartX;
-    this.opponentPartyBalls = obj2.opponentPartyBalls;
-    // poke ball giocatore
-    const playerPokeBall = battleGraphics.createPlayerPokeBall();
-    // poke ball avversario
-    const enemyPokeBall = battleGraphics.createOpponentPokeBall();
-    // Player's Pokémon
-    this.playerPokemon = battleGraphics.createPlayerPokemon(
-      playerPokemonIndex,
-      this.playerPokemonStartX,
-      this.frameQuantitiesBack
-    );
-    // Enemy's Pokémon
-    this.opponentPokemon = battleGraphics.createOpponentPokemon(
-      enemyPokemonIndex,
-      this.opponentPokemonStartX,
-      this.frameQuantitiesFront
-    );
-    // Player life bar
-    const playerLifeBar = battleGraphics.createPlayerLifeBar();
-    // Enemy life bar
-    const enemyLifeBar = battleGraphics.createOpponentLifeBar();
-    // Player pokemon name
-    const playerPokemonName = battleGraphics.createPlayerPokemonName();
-    // Enemy pokemon name
-    const enemyPokemonName = battleGraphics.createOpponentPokemonName();
-    // Player level
-    const playerPokemonLevel = battleGraphics.createPlayerPokemonLevel();
-    // Enemy level
-    const enemyPokemonLevel = battleGraphics.createOpponentPokemonLevel();
-    // Player health
-    this.healthText = battleGraphics.createPlayerHealthText(555);
-    // Player life
-    this.hpRect = battleGraphics.createPlayerHpRect(555, 555, hpRectMaxWidth);
-    // Enemy life
-    this.opponentHpRect = battleGraphics.createOpponentHpRect(hpRectMaxWidth);
-    //TODO: Health Managers
-    const playerHealthManager = new BattleSceneHealthManager(this);
-    playerHealthManager.setHPRect(this.hpRect);
-    playerHealthManager.setHealthText(this.healthText);
-    const opponentHealthManager = new BattleSceneHealthManager(this);
-    opponentHealthManager.setHPRect(this.opponentHpRect);
     //Input Keyboard
-    this.createInputKeyboard(playerHealthManager);
+    this.createInputKeyboard();
     // Text Events
     this.createTextEvents();
-    //TODO: Network Events
     sceneEvents.on('notify-lower-screen', this.notifyLowerScreen, this);
-    //TODO: Faded Events
     sceneEvents.on(
       'opponent-faded',
       () => {
-        enemyPokeBall.visible = true;
-        enemyPokeBall.anims.play('ultra-ball-anim-0', true);
+        this.introManager.playOpponentPokeBall();
       },
       this
     );
     sceneEvents.on(
       'player-faded',
       () => {
-        playerPokeBall.visible = true;
-        playerPokeBall.anims.play('ultra-ball-anim-0', true);
+        this.introManager.playPlayerPokeBall();
       },
       this
     );
-    //TODO: Pokemon entering events
     sceneEvents.on(
       'from-opponent-poke-ball-to-pokemon',
       () => {
-        enemyPokeBall.visible = false;
-        this.opponentPartyBar.visible = false;
-        this.opponentPartyBalls.forEach((ball) => {
-          ball.visible = false;
-        });
-        enemyLifeBar.visible = true;
-        this.opponentHpRect.visible = true;
-        enemyPokemonLevel.visible = true;
-        enemyPokemonName.visible = true;
-        this.opponentPokemon.visible = true;
-        this.opponentPokemon.anims.play(
-          `${pokemonFrames[enemyPokemonIndex].pokedexNumber}-front-anim-0`,
-          true
+        this.introManager.invisibleOpponentPokeBall();
+        this.introManager.invisibleOpponentPartyBar();
+        this.introManager.invisibleOpponentPartyBalls();
+        this.healthManager.opponentLifeBarVisible();
+        this.healthManager.opponentHpRectVisible();
+        this.healthManager.setOpponentHealth(
+          this.opponentPokemons[this.opponentPokemonIndex],
+          this.battleGraphics
         );
+        this.pokemonManager.opponentPokemonLevelVisible();
+        this.pokemonManager.opponentPokemonNameVisible();
+        this.pokemonManager.opponentPokemonVisible();
+        this.pokemonManager.opponentPokemonResetAlpha();
+        this.pokemonManager.initializeOpponentPosition();
+        this.pokemonManager.playOpponentPokemon();
         if (this.state !== BattleState.BATTLE_START) {
-          sceneEvents.emit('new-text');
-          sceneEvents.emit('show-battle-text', `Go ${'Template Name'}!`);
-          this.state = BattleState.PLAYER_FADING;
+          if (this.state === BattleState.SEND_OUT_OPPONENT_POKEMON) {
+            if (this.turn === 2) {
+              sceneEvents.emit(
+                'manage-action',
+                this.playerData,
+                this.opponentData
+              );
+            } else {
+              this.state = BattleState.BATTLE_START;
+              this.waitZ = true;
+            }
+          } else if (
+            this.state === BattleState.SEND_OUT_OPPONENT_POKEMON_FAINTED
+          ) {
+            this.state = BattleState.BATTLE_START;
+            this.waitZ = true;
+          } else {
+            sceneEvents.emit('new-text');
+            sceneEvents.emit(
+              'show-battle-text',
+              `Go ${this.playerPokemons[this.playerPokemonIndex].name}!`
+            );
+            this.state = BattleState.PLAYER_FADING;
+          }
         } else {
           this.waitZ = true;
         }
@@ -240,41 +287,57 @@ export default class BattleScene extends Phaser.Scene {
     sceneEvents.on(
       'from-player-poke-ball-to-pokemon',
       () => {
-        playerPokeBall.visible = false;
-        this.playerPartyBar.visible = false;
-        this.playerPartyBalls.forEach((ball) => {
-          ball.visible = false;
-        });
-        playerLifeBar.visible = true;
-        this.hpRect.visible = true;
-        playerPokemonLevel.visible = true;
-        playerPokemonName.visible = true;
-        this.healthText.visible = true;
-        this.playerPokemon.visible = true;
-        this.playerPokemon.alpha = 1;
-        this.playerPokemon.anims.play(
-          `${pokemonFrames[playerPokemonIndex].pokedexNumber}-back-anim-0`,
-          true
+        this.introManager.invisiblePlayerPokeBall();
+        this.introManager.invisiblePlayerPartyBar();
+        this.introManager.invisiblePlayerPartyBalls();
+        this.healthManager.playerLifeBarVisible();
+        this.healthManager.playerHpRectVisible();
+        this.healthManager.playerHpTextVisible();
+        this.healthManager.setPlayerHealth(
+          this.playerPokemons[this.playerPokemonIndex],
+          this.battleGraphics
         );
-        sceneEvents.emit('new-text');
-        sceneEvents.emit(
-          'show-battle-text',
-          `What ${'Template Name'} should do?`
-        );
-        this.waitZ = true;
-        this.state = BattleState.BATTLE_START;
+        this.pokemonManager.playerPokemonLevelVisible();
+        this.pokemonManager.playerPokemonNameVisible();
+        this.pokemonManager.playerPokemonVisible();
+        this.pokemonManager.playerPokemonResetAlpha();
+        this.pokemonManager.playPlayerPokemon();
+        if (this.state === BattleState.SEND_OUT_PLAYER_POKEMON) {
+          if (this.turn === 1) {
+            sceneEvents.emit(
+              'manage-opponent-action',
+              this.opponentData,
+              this.playerData
+            );
+          } else {
+            this.waitZ = true;
+            this.state = BattleState.BATTLE_START;
+          }
+        } else {
+          sceneEvents.emit('new-text');
+          sceneEvents.emit(
+            'show-battle-text',
+            `What ${
+              this.playerPokemons[this.playerPokemonIndex].name
+            } should do?`
+          );
+          this.waitZ = true;
+          this.state = BattleState.BATTLE_START;
+        }
       },
       this
     );
     //TODO: Action event
     sceneEvents.on('manage-action', this.manageAction, this);
+    sceneEvents.on('manage-opponent-action', this.manageOpponentAction, this);
+    sceneEvents.on('notify-pokemon-fainted', this.notifyPokemonFainted, this);
     //TODO: Battle Events
     sceneEvents.on(
       'hit-enemy',
       () => {
         this.timeout = setInterval(() => {
           this.timeoutCount++;
-          this.opponentPokemon.visible = !this.opponentPokemon.visible;
+          this.pokemonManager.hitOpponentPokemon();
           if (this.timeoutCount >= 6) {
             this.timeoutCount = 0;
             setTimeout(() => {
@@ -291,26 +354,47 @@ export default class BattleScene extends Phaser.Scene {
       'decrease-enemy-health',
       () => {
         this.timeout = setInterval(() => {
-          opponentHealthManager.decreaseHealth();
+          this.healthManager.decreaseOpponentPokemonHealth();
           this.timeoutCount++;
-          if (this.timeoutCount >= 600) {
+          if (this.timeoutCount >= 50) {
             this.timeoutCount = 0;
             setTimeout(() => {
-              if (opponentHealthManager.getPokemonCurrentHealth() <= 0) {
+              if (this.healthManager.getOpponentPokemonCurrentHealth() <= 0) {
                 sceneEvents.emit('new-text');
                 sceneEvents.emit(
                   'show-battle-text',
-                  `The enemy ${'Template Name'} is fainted`
+                  `The enemy ${
+                    this.opponentPokemons[this.opponentPokemonIndex].name
+                  } is fainted`
                 );
-                sceneEvents.emit('notify-lower-screen', 'OK');
-                this.state = BattleState.ENEMY_FAINTED;
+                // sceneEvents.emit('notify-lower-screen', 'OK');
+                this.state = BattleState.ENEMY_FAINTED_BATTLE;
               } else {
                 sceneEvents.emit('new-text');
                 sceneEvents.emit(
                   'show-battle-text',
-                  `The enemy ${'Template Namte'} uses ${'Solar Beam'}`
+                  `The enemy ${
+                    this.opponentPokemons[this.opponentPokemonIndex].name
+                  } uses ${'Solar Beam'}`
                 );
-                this.state = BattleState.ENEMY_ATTACK_FRONT;
+                if (this.turn === 1) {
+                  sceneEvents.emit(
+                    'manage-opponent-action',
+                    this.opponentData,
+                    this.playerData
+                  );
+                } else {
+                  sceneEvents.emit('new-text');
+                  sceneEvents.emit(
+                    'show-battle-text',
+                    `What should ${
+                      this.playerPokemons[this.playerPokemonIndex].name
+                    } do?`
+                  );
+                  this.waitZ = true;
+                  // sceneEvents.emit('notify-pokemon-fainted', 'OK');
+                  this.state = BattleState.BATTLE_START;
+                }
               }
             }, 2000);
             clearInterval(this.timeout);
@@ -325,7 +409,7 @@ export default class BattleScene extends Phaser.Scene {
       () => {
         this.timeout = setInterval(() => {
           this.timeoutCount++;
-          this.playerPokemon.visible = !this.playerPokemon.visible;
+          this.pokemonManager.hitPlayerPokemon();
           if (this.timeoutCount >= 6) {
             this.timeoutCount = 0;
             setTimeout(() => {
@@ -342,31 +426,49 @@ export default class BattleScene extends Phaser.Scene {
       'decrease-player-health',
       () => {
         this.timeout = setInterval(() => {
-          playerHealthManager.decreaseHealth();
+          this.healthManager.decreasePlayerPokemonHealth();
           this.timeoutCount++;
-          if (this.timeoutCount >= 600) {
+          if (this.timeoutCount >= 50) {
             this.timeoutCount = 0;
             setTimeout(() => {
               let pokemonState = '';
-              if (playerHealthManager.getPokemonCurrentHealth() <= 0) {
+              if (this.healthManager.getPlayerPokemonCurrentHealth() <= 0) {
                 pokemonState = 'FAINTED';
                 sceneEvents.emit('new-text');
                 sceneEvents.emit(
                   'show-battle-text',
-                  `${'Template Name'} is fainted`
+                  `${
+                    this.playerPokemons[this.playerPokemonIndex].name
+                  } is fainted`
                 );
                 this.state = BattleState.PLAYER_FAINTED;
+                // this.createSSE();
               } else {
                 pokemonState = 'OK';
-                sceneEvents.emit('new-text');
-                sceneEvents.emit(
-                  'show-battle-text',
-                  `What should ${'Template Name'} do?`
-                );
-                this.state = BattleState.BATTLE_START;
-                this.waitZ = true;
+                if (this.turn === 2) {
+                  sceneEvents.emit(
+                    'manage-action',
+                    this.playerData,
+                    this.opponentData
+                  );
+                } else {
+                  sceneEvents.emit('new-text');
+                  sceneEvents.emit(
+                    'show-battle-text',
+                    `What should ${
+                      this.playerPokemons[this.playerPokemonIndex].name
+                    } do?`
+                  );
+                  this.state = BattleState.BATTLE_START;
+                  this.waitZ = true;
+                }
               }
-              sceneEvents.emit('notify-lower-screen', pokemonState);
+              // if (this.playerData.split(',')[0] === 'SWITCH') {
+
+              // } else {
+              //   sceneEvents.emit('notify-pokemon-fainted', pokemonState);
+              // }
+              sceneEvents.emit('notify-pokemon-fainted', pokemonState);
             }, 2000);
             clearInterval(this.timeout);
           }
@@ -375,112 +477,188 @@ export default class BattleScene extends Phaser.Scene {
       this
     );
 
-    //TODO: Send out pokemon Event
+    //Send out pokemon Event
     sceneEvents.on(
       'send-out-player-pokemon',
       () => {
-        playerLifeBar.visible = false;
-        this.hpRect.visible = false;
-        playerPokemonLevel.visible = false;
-        playerPokemonName.visible = false;
-        this.healthText.visible = false;
-        playerPokemonIndex = Math.floor(Math.random() * pokemonFrames.length);
-        this.playerPokemon = battleGraphics.createPlayerPokemon(
-          playerPokemonIndex,
-          this.playerPokemonStartX,
-          this.frameQuantitiesBack
+        this.healthManager.playerLifeBarInvisible();
+        this.healthManager.playerHpRectInvisible();
+        this.healthManager.playerHpTextInvisible();
+        this.pokemonManager.playerPokemonLevelInvisible();
+        this.pokemonManager.playerPokemonNameInvisible();
+        this.pokemonManager.createPlayerPokemon(
+          this.battleGraphics,
+          this.playerPokemons[this.playerPokemonIndex]
         );
-        this.playerPokemon.visible = false;
-        playerPokeBall.visible = true;
-        sceneEvents.emit('new-text');
-        sceneEvents.emit('show-battle-text', `Go ${'Template Name'}!`);
-        playerPokeBall.anims.play('ultra-ball-anim-0', true);
-      },
-      this
-    );
-    sceneEvents.on(
-      'send-out-enemy-pokemon',
-      () => {
-        enemyLifeBar.visible = false;
-        this.opponentHpRect.visible = false;
-        enemyPokemonLevel.visible = false;
-        enemyPokemonName.visible = false;
-        enemyPokemonIndex = Math.floor(Math.random() * pokemonFrames.length);
-        this.opponentPokemon = battleGraphics.createOpponentPokemon(
-          enemyPokemonIndex,
-          this.opponentPokemonStartX,
-          this.frameQuantitiesFront
-        );
-        this.opponentPokemon.visible = false;
-        enemyPokeBall.visible = true;
-        enemyPokeBall.anims.play('ultra-ball-anim-0', true);
+        sceneEvents.emit('send-player-index');
+        this.pokemonManager.playerPokemonInvisilbe();
+        this.introManager.playPlayerPokeBall();
         sceneEvents.emit('new-text');
         sceneEvents.emit(
           'show-battle-text',
-          `${'Rosa'} Pokémon Trainer send out ${'Template Name'}`
+          `Go ${this.playerPokemons[this.playerPokemonIndex].name}!`
+        );
+      },
+      this
+    );
+    sceneEvents.on('send-player-index', this.sendOutPlayerPokemon, this);
+    sceneEvents.on(
+      'send-out-enemy-pokemon',
+      () => {
+        this.healthManager.opponentLifeBarInvisible();
+        this.healthManager.opponentHpRectInvisible();
+        this.pokemonManager.opponentPokemonLevelInvisible();
+        this.pokemonManager.opponentPokemonNameInvisible();
+        this.pokemonManager.initializeOpponentPosition();
+        this.pokemonManager.createOpponentPokemon(
+          this.battleGraphics,
+          this.opponentPokemons[this.opponentPokemonIndex]
+        );
+        this.pokemonManager.opponentPokemonInvisible();
+        this.introManager.playOpponentPokeBall();
+        sceneEvents.emit('new-text');
+        sceneEvents.emit(
+          'show-battle-text',
+          `${this.opponent.userName} Pokémon Trainer send out ${
+            this.opponentPokemons[this.opponentPokemonIndex].name
+          }`
         );
       },
       this
     );
 
+    sceneEvents.on(
+      'send-intro-to-lower',
+      this.sendIntroNotificationToLower,
+      this
+    );
+    sceneEvents.on(
+      'send-choice-to-lower',
+      this.sendChoiceNotificationToLower,
+      this
+    );
+
+    sceneEvents.on('reset-intro-data', this.resetIntroData, this);
+    sceneEvents.on('reset-choice-data', this.resetChoiceData, this);
+
+    sceneEvents.on('get-opponent-choice', this.getOpponentChoice, this);
+
+    sceneEvents.on('test-opponent-choice', this.testOpponentChoice, this);
+
+    // sceneEvents.on('get-opponent-new-pokemon', this.createSSE2, this);
+
     sceneEvents.emit(
       'show-battle-text',
-      `You're challenged by ${'Rosa'} Pokémon Trainer`
+      `You're challenged by ${this.opponent.userName} Pokémon Trainer(press A or Z)`
     );
   }
 
   private async notifyLowerScreen(pokemonState: string) {
-    await notifyLowerPromise(pokemonState);
+    await notifyLowerPromise(pokemonState, this.user.userID);
   }
 
-  private createSSE(healthManager: BattleSceneHealthManager) {
-    const sse = new EventSource(`${url}/delayed/notify-upper`);
-    sse.addEventListener('message', async function (ev) {
-      console.log('From Lower Screen');
+  private createSSE() {
+    const sse = new EventSource(
+      `${url}/delayed/notify-upper/${this.user.userID}`
+    );
+    sse.addEventListener('message', (ev) => {
       let [messageType, information]: string = ev.data.split(',');
-      console.log(messageType, information);
-      sceneEvents.emit(
-        'manage-action',
-        messageType,
-        information,
-        healthManager
-      );
-      // await notifyLowerPromise();
+      this.playerData = ev.data;
+      console.log(this.playerData);
       sse.close();
+      if (this.isRelavant(messageType)) {
+        sceneEvents.emit('test-opponent-choice', this.playerData);
+      } else {
+        sceneEvents.emit('manage-action', this.playerData, '');
+      }
     });
   }
 
-  private manageAction(
-    messageType: string,
-    information: string,
-    healthManager: BattleSceneHealthManager
-  ) {
-    switch (messageType) {
+  private async testOpponentChoice(playerData: string) {
+    const opponentChoiceEmpty = await this.emptyOpponentChoice();
+    if (opponentChoiceEmpty) {
+      console.log("YES, IT'S EMPTY");
+      this.createSSE2(playerData);
+    } else {
+      //TODO: This is a problem, the system should send the notification after it has ensured about the nature of the opponent's choice
+      sceneEvents.emit('send-choice-to-lower');
+      sceneEvents.emit('get-opponent-choice', playerData);
+    }
+  }
+
+  private async emptyOpponentChoice() {
+    const data = await getOpponentChoicePromise(this.opponent.userID);
+    console.log('IS EMPTY?', data);
+    return data === '';
+  }
+
+  private createSSE2(playerData: string) {
+    const sse2 = new EventSource(`${url}/battle/wait-choice-upper`);
+    sse2.addEventListener('message', (ev2) => {
+      let data = ev2.data.split(',');
+      console.log(ev2.data);
+      sse2.close();
+      //TODO: Also this, is a problem
+      sceneEvents.emit('send-choice-to-lower');
+      sceneEvents.emit('get-opponent-choice', playerData);
+    });
+  }
+
+  private createSSEFainted() {
+    const sseFainted = new EventSource(
+      `${url}/battle/wait-choice-fainted/${this.opponent.userID}`
+    );
+    sseFainted.addEventListener('message', (ev2) => {
+      let data = ev2.data.split(',');
+      console.log(ev2.data);
+      sseFainted.close();
+      console.log('Notification arrived successfully');
+      this.opponentPokemonIndex = parseInt(data[1]);
+      sceneEvents.emit('notify-pokemon-fainted', 'OK');
+      sceneEvents.emit('send-out-enemy-pokemon');
+    });
+  }
+
+  private manageAction(playerData: string, opponentData: string) {
+    let playerInfo: string[] = playerData.split(',');
+    // let opponentInfo: string[] = opponentData.split(',');
+    console.log('Player Info: ', playerInfo);
+    switch (playerInfo[0]) {
       case 'INCREASE-HEALTH': {
-        if (this.hpRect.width < hpRectMaxWidth && !this.zPressed) {
+        if (
+          this.healthManager.getPlayerHpRect().width < hpRectMaxWidth &&
+          !this.zPressed
+        ) {
           sceneEvents.emit('new-text');
           sceneEvents.emit(
             'show-battle-text',
-            `${'Template Name'} has recovered ${20}ps`
+            `${
+              this.playerPokemons[this.playerPokemonIndex].name
+            } has recovered ${parseInt(playerInfo[3])}ps`
           );
           this.zPressed = true;
           this.timeout = setInterval(() => {
-            healthManager.increaseHealth();
+            this.healthManager.increasePlayerPokemonHealth();
             this.timeoutCount++;
-            if (this.timeoutCount >= 20) {
+            if (this.timeoutCount >= parseInt(playerInfo[3])) {
               this.timeoutCount = 0;
               this.zPressed = false;
               setTimeout(() => {
                 sceneEvents.emit('new-text');
                 sceneEvents.emit(
                   'show-battle-text',
-                  `What ${'Template Name'} should do?`
+                  `What ${
+                    this.playerPokemons[this.playerPokemonIndex].name
+                  } should do?`
                 );
                 this.waitZ = true;
               }, 2000);
               clearInterval(this.timeout);
             }
           }, 50);
+        }
+        if (this.turn === 1) {
+          sceneEvents.emit('manage-opponent-action', opponentData, playerData);
         }
         break;
       }
@@ -495,7 +673,47 @@ export default class BattleScene extends Phaser.Scene {
           sceneEvents.emit('new-text');
           sceneEvents.emit(
             'show-battle-text',
-            `What ${'Template Name'} should do?`
+            `What ${
+              this.playerPokemons[this.playerPokemonIndex].name
+            } should do?`
+          );
+          this.waitZ = true;
+        }, 2000);
+        break;
+      }
+      case 'STATS': {
+        sceneEvents.emit('new-text');
+        sceneEvents.emit(
+          'show-battle-text',
+          `This functionality is not yet available D:`
+        );
+        this.zPressed = false;
+        setTimeout(() => {
+          sceneEvents.emit('new-text');
+          sceneEvents.emit(
+            'show-battle-text',
+            `What ${
+              this.playerPokemons[this.playerPokemonIndex].name
+            } should do?`
+          );
+          this.waitZ = true;
+        }, 2000);
+        break;
+      }
+      case 'POKEBALL': {
+        sceneEvents.emit('new-text');
+        sceneEvents.emit(
+          'show-battle-text',
+          `You cannot catch your opponent's Pokémon`
+        );
+        this.zPressed = false;
+        setTimeout(() => {
+          sceneEvents.emit('new-text');
+          sceneEvents.emit(
+            'show-battle-text',
+            `What ${
+              this.playerPokemons[this.playerPokemonIndex].name
+            } should do?`
           );
           this.waitZ = true;
         }, 2000);
@@ -506,22 +724,34 @@ export default class BattleScene extends Phaser.Scene {
         sceneEvents.emit('new-text');
         sceneEvents.emit(
           'show-battle-text',
-          `${'Template Name'} uses ${'Flamethrower'}`
+          `${this.playerPokemons[this.playerPokemonIndex].name} uses ${
+            playerInfo[1]
+          }`
         );
+        // if (this.turn === 1) {
+        //   sceneEvents.emit('manage-opponent-action', opponentData, playerData);
+        // }
         this.waitZ = false;
         break;
       }
       case 'SWITCH': {
-        this.state = BattleState.SWITCH_PLAYER_POKEMON;
         sceneEvents.emit('new-text');
         sceneEvents.emit(
           'show-battle-text',
-          `${'Template Name'} good job! Now come back`
+          `${
+            this.playerPokemons[this.playerPokemonIndex].name
+          } good job! Now come back`
         );
+        this.playerPokemonIndex = parseInt(playerInfo[1]);
+        // if (this.turn === 1) {
+        this.state = BattleState.SWITCH_PLAYER_POKEMON;
+        // sceneEvents.emit('manage-opponent-action', opponentData, playerData);
+        // }
         this.waitZ = false;
         break;
       }
       case 'SWITCH-FAINTED': {
+        this.playerPokemonIndex = parseInt(playerInfo[1]);
         sceneEvents.emit('send-out-player-pokemon');
         break;
       }
@@ -533,264 +763,335 @@ export default class BattleScene extends Phaser.Scene {
     }
   }
 
+  private manageOpponentAction(opponentData: string, playerData: string) {
+    let [messageType] = opponentData.split(',');
+    switch (messageType) {
+      case 'SWITCH': {
+        let [a, b, pokemonIndexString] = opponentData.split(',');
+        sceneEvents.emit('new-text');
+        sceneEvents.emit(
+          'show-battle-text',
+          `${
+            this.opponentPokemons[this.opponentPokemonIndex].name
+          } is retreat from battle.`
+        );
+        this.opponentPokemonIndex = parseInt(pokemonIndexString);
+        this.state = BattleState.ENEMY_FAINTED;
+        //The opponent has switched pokémon but the user has chosen to attack
+        if (this.playerData.split(',')[0] === 'ATTACK') {
+          sceneEvents.emit('notify-pokemon-fainted', 'OK');
+        }
+        this.waitZ = false;
+        break;
+      }
+      case 'SWITCH-FAINTED': {
+        break;
+      }
+      case 'ATTACK': {
+        let [a, b, moveName] = opponentData.split(',');
+        this.state = BattleState.ENEMY_ATTACK_FRONT;
+        sceneEvents.emit('new-text');
+        sceneEvents.emit(
+          'show-battle-text',
+          `${
+            this.opponentPokemons[this.opponentPokemonIndex].name
+          } uses ${moveName}`
+        );
+        // if (this.turn === 2) {
+        //   sceneEvents.emit('manage-action', playerData, opponentData);
+        // }
+        this.waitZ = false;
+        break;
+      }
+      case 'INCREASE-HEALTH': {
+        break;
+      }
+    }
+  }
+
   update() {
-    switch (this.state) {
-      case BattleState.BATTLE_INTRO: {
-        this.playerBase.setX((this.playerBaseStartX -= 2));
-        this.opponentBase.setX((this.opponentBaseStartX += 2));
-        this.playerImage.setX((this.playerStartX -= 2));
-        this.opponentImage.setX((this.opponentStartX += 2));
-        if (this.introOpponentCompleted()) {
-          this.state = BattleState.COMPLETE_PLAYER_INTRO;
+    if (this.readData) {
+      switch (this.state) {
+        case BattleState.BATTLE_INTRO: {
+          this.introManager.setPlayerBaseX();
+          this.introManager.setOpponentBaseX();
+          this.introManager.setPlayerImageX();
+          this.introManager.setOpponentImageX();
+          if (this.introManager.introOpponentCompleted()) {
+            this.state = BattleState.COMPLETE_PLAYER_INTRO;
+          }
+          break;
         }
-        break;
-      }
-      case BattleState.COMPLETE_PLAYER_INTRO: {
-        if (!this.introPlayerCompleted()) {
-          this.playerBase.setX((this.playerBaseStartX -= 2));
-          this.playerImage.setX((this.playerStartX -= 2));
-        } else {
-          this.waitZ = true;
+        case BattleState.COMPLETE_PLAYER_INTRO: {
+          if (!this.introManager.introPlayerCompleted()) {
+            this.introManager.setPlayerBaseX();
+            this.introManager.setPlayerImageX();
+          } else {
+            this.waitZ = true;
+          }
+          break;
         }
-        break;
-      }
-      case BattleState.ENTERING_PARTY_BALL: {
-        for (let i = 0; i < this.playerPartyBalls.length; i++) {
-          this.playerPartyBalls[i].setX((this.playerPartyBallStartX[i] -= 2));
-          this.opponentPartyBalls[i].setX(
-            (this.opponentPartyBallStartX[i] += 2)
-          );
+        case BattleState.ENTERING_PARTY_BALL: {
+          this.introManager.enterPlayerAndOpponentPartyBalls();
+          if (this.introManager.opponentPartyBallsCompleted()) {
+            this.state = BattleState.COMPLETE_PLAYER_PARTY_BALL;
+          }
+          break;
         }
-        if (this.opponentPartyBallsCompleted()) {
-          this.state = BattleState.COMPLETE_PLAYER_PARTY_BALL;
+        case BattleState.COMPLETE_PLAYER_PARTY_BALL: {
+          this.introManager.enterPlayerPartyBalls();
+          if (this.introManager.playerPartyBallsCompleted()) {
+            console.log('Completed player party ball');
+            this.state = BattleState.ENEMY_FADING;
+            sceneEvents.emit(
+              'show-battle-text',
+              `${this.opponent.userName} Pokémon Trainer send out ${
+                this.opponentPokemons[this.opponentPokemonIndex].name
+              }`
+            );
+          }
+          break;
         }
-        break;
-      }
-      case BattleState.COMPLETE_PLAYER_PARTY_BALL: {
-        for (let i = 0; i < this.playerPartyBalls.length; i++) {
-          this.playerPartyBalls[i].setX((this.playerPartyBallStartX[i] -= 2));
+        case BattleState.ENEMY_FADING: {
+          this.introManager.setOpponentImageX();
+          this.introManager.setOpponentImageAlpha();
+          if (this.introManager.opponentImageFaded()) {
+            sceneEvents.emit('opponent-faded');
+          }
+          break;
         }
-        if (this.playerPartyBallsCompleted()) {
-          this.state = BattleState.ENEMY_FADING;
-          sceneEvents.emit(
-            'show-battle-text',
-            `${'Rosa'} Pokémon Trainer send out ${'Template Name'}`
-          );
+        case BattleState.PLAYER_FADING: {
+          this.introManager.setPlayerImageX();
+          this.introManager.setPlayerImageAlpha();
+          if (this.introManager.playerImageFaded()) {
+            sceneEvents.emit('player-faded');
+          }
+          break;
         }
-        break;
-      }
-      case BattleState.ENEMY_FADING: {
-        this.opponentImage.setX((this.opponentStartX += 2));
-        this.opponentImage.alpha -= 0.02;
-        if (this.opponentImageFaded()) {
-          sceneEvents.emit('opponent-faded');
+        case BattleState.PLAYER_ATTACK_FRONT: {
+          this.pokemonManager.moveForwardPlayerPokemon();
+          if (this.pokemonManager.checkPlayerPokemonFrontX()) {
+            this.state = BattleState.PLAYER_ATTACK_BACK;
+          }
+          break;
         }
-        break;
-      }
-      case BattleState.PLAYER_FADING: {
-        this.playerImage.setX((this.playerStartX -= 2));
-        this.playerImage.alpha -= 0.02;
-        if (this.playerImageFaded()) {
-          sceneEvents.emit('player-faded');
+        case BattleState.PLAYER_ATTACK_BACK: {
+          this.pokemonManager.moveBackwardPlayerPokemon();
+          if (this.pokemonManager.checkPlayerPokemonBackX()) {
+            this.state = BattleState.HIT_ENEMY;
+            sceneEvents.emit('hit-enemy');
+          }
+          break;
         }
-        break;
-      }
-      case BattleState.PLAYER_ATTACK_FRONT: {
-        this.playerPokemon.setX((this.playerPokemonCurrentX += 2));
-        if (this.checkPlayerPokemonFrontX()) {
-          this.state = BattleState.PLAYER_ATTACK_BACK;
+        case BattleState.HIT_ENEMY: {
+          this.pokemonManager.stopPlayerPokemon();
+          break;
         }
-        break;
-      }
-      case BattleState.PLAYER_ATTACK_BACK: {
-        this.playerPokemon.setX((this.playerPokemonCurrentX -= 2));
-        if (this.checkPlayerPokemonBackX()) {
-          this.state = BattleState.HIT_ENEMY;
-          sceneEvents.emit('hit-enemy');
+        case BattleState.ENEMY_ATTACK_FRONT: {
+          this.pokemonManager.moveForwardOpponentPokemon();
+          if (this.pokemonManager.checkOpponentPokemonFrontX()) {
+            this.state = BattleState.ENEMY_ATTACK_BACK;
+          }
+          break;
         }
-        break;
-      }
-      case BattleState.HIT_ENEMY: {
-        this.playerPokemon.setX(this.playerPokemonCurrentX);
-        break;
-      }
-      case BattleState.ENEMY_ATTACK_FRONT: {
-        this.opponentPokemon.setX((this.opponentPokemonCurrentX -= 2));
-        if (this.checkOpponentPokemonFrontX()) {
-          this.state = BattleState.ENEMY_ATTACK_BACK;
+        case BattleState.ENEMY_ATTACK_BACK: {
+          this.pokemonManager.moveBackwardOpponentPokemon();
+          if (this.pokemonManager.checkOpponentPokemonBackX()) {
+            this.state = BattleState.HIT_PLAYER;
+            sceneEvents.emit('hit-player');
+          }
+          break;
         }
-        break;
-      }
-      case BattleState.ENEMY_ATTACK_BACK: {
-        this.opponentPokemon.setX((this.opponentPokemonCurrentX += 2));
-        if (this.checkOpponentPokemonBackX()) {
-          this.state = BattleState.HIT_PLAYER;
-          sceneEvents.emit('hit-player');
+        case BattleState.HIT_PLAYER: {
+          this.pokemonManager.stopOpponentPokemon();
+          break;
         }
-        break;
-      }
-      case BattleState.HIT_PLAYER: {
-        this.opponentPokemon.setX(this.opponentPokemonCurrentX);
-        break;
-      }
-      case BattleState.SWITCH_PLAYER_POKEMON: {
-        this.playerPokemon.setX((this.playerPokemonCurrentX -= 2));
-        this.playerPokemon.alpha -= 0.02;
-        if (this.playerPokemonFaded()) {
-          this.state = BattleState.SEND_OUT_PLAYER_POKEMON;
-          sceneEvents.emit('send-out-player-pokemon');
+        case BattleState.SWITCH_PLAYER_POKEMON: {
+          this.pokemonManager.moveBackwardPlayerPokemon();
+          this.pokemonManager.fadePlayerPokemon();
+          if (this.pokemonManager.playerPokemonFaded()) {
+            this.state = BattleState.SEND_OUT_PLAYER_POKEMON;
+            sceneEvents.emit('send-out-player-pokemon');
+          }
+          break;
         }
-        break;
-      }
-      case BattleState.SEND_OUT_PLAYER_POKEMON: {
-        this.playerPokemon.setX(this.playerPokemonStartX);
-        this.playerPokemonCurrentX = this.playerPokemonStartX;
-        break;
-      }
-      case BattleState.PLAYER_FAINTED: {
-        this.playerPokemon.setX((this.playerPokemonCurrentX -= 2));
-        this.playerPokemon.alpha -= 0.02;
-        if (this.playerPokemonFaded()) {
-          this.playerPokemon.setX(this.playerPokemonStartX);
-          this.playerPokemonCurrentX = this.playerPokemonStartX;
-          this.waitZ = true;
-          this.state = BattleState.BATTLE_START;
-          // this.createSSE(); //listening for the switch, create a new one not sending any fake
+        case BattleState.SEND_OUT_PLAYER_POKEMON: {
+          this.pokemonManager.initializePlayerPosition();
+          break;
         }
-        break;
-      }
-      case BattleState.ENEMY_FAINTED: {
-        this.opponentPokemon.setX((this.opponentPokemonCurrentX += 2));
-        this.opponentPokemon.alpha -= 0.02;
-        if (this.opponentPokemonFaded()) {
-          this.opponentPokemon.setX(this.opponentPokemonStartX);
-          this.opponentPokemonCurrentX = this.opponentPokemonStartX;
-          // this.waitZ = true;
-          sceneEvents.emit('send-out-enemy-pokemon');
-          this.state = BattleState.BATTLE_START;
+        case BattleState.PLAYER_FAINTED: {
+          this.pokemonManager.moveBackwardPlayerPokemon();
+          this.pokemonManager.fadePlayerPokemon();
+          if (this.pokemonManager.playerPokemonFaded()) {
+            this.pokemonManager.initializePlayerPosition();
+            this.waitZ = true;
+            this.state = BattleState.BATTLE_START;
+          }
+          break;
         }
-        break;
+        case BattleState.ENEMY_FAINTED: {
+          this.pokemonManager.moveBackwardOpponentPokemon();
+          this.pokemonManager.fadeOpponentPokemon();
+          if (this.pokemonManager.opponentPokemonFaded()) {
+            this.state = BattleState.SEND_OUT_OPPONENT_POKEMON;
+            sceneEvents.emit('send-out-enemy-pokemon');
+          }
+          break;
+        }
+        case BattleState.ENEMY_FAINTED_BATTLE: {
+          this.pokemonManager.moveBackwardOpponentPokemon();
+          this.pokemonManager.fadeOpponentPokemon();
+          if (this.pokemonManager.opponentPokemonFaded()) {
+            this.state = BattleState.SEND_OUT_OPPONENT_POKEMON_FAINTED;
+            console.log('The enemy is fainted, waiting for his choice');
+            this.createSSEFainted();
+          }
+          break;
+        }
+        case BattleState.SEND_OUT_OPPONENT_POKEMON: {
+          this.pokemonManager.initializeOpponentPosition();
+          break;
+        }
+        case BattleState.SEND_OUT_OPPONENT_POKEMON_FAINTED: {
+          this.pokemonManager.initializeOpponentPosition();
+          break;
+        }
+      }
+      if (this.displayText) {
+        this.battleMessage.displayText();
       }
     }
-    if (this.displayText) {
-      this.battleMessage.displayText();
-    }
-  }
-
-  private introPlayerCompleted() {
-    return (
-      this.playerBaseStartX <= this.playerBaseEndX &&
-      this.playerStartX <= this.playerEndX
-    );
-  }
-
-  private introOpponentCompleted() {
-    return (
-      this.opponentBaseStartX >= this.opponentBaseEndX &&
-      this.opponentStartX >= this.opponentEndX
-    );
-  }
-
-  private opponentPartyBallsCompleted() {
-    return this.opponentPartyBallStartX[0] >= this.opponentPartyBallEndX;
-  }
-
-  private playerPartyBallsCompleted() {
-    return this.playerPartyBallStartX[0] <= this.playerPartyBallEndX;
-  }
-
-  private opponentImageFaded() {
-    return this.opponentImage.alpha <= 0;
-  }
-
-  private playerImageFaded() {
-    return this.playerImage.alpha <= 0;
-  }
-
-  private checkPlayerPokemonFrontX() {
-    return this.playerPokemonCurrentX >= this.playerPokemonEndX;
-  }
-
-  private checkPlayerPokemonBackX() {
-    return this.playerPokemonCurrentX <= this.playerPokemonStartX;
-  }
-
-  private checkOpponentPokemonFrontX() {
-    return this.opponentPokemonCurrentX <= this.opponentPokemonEndX;
-  }
-
-  private checkOpponentPokemonBackX() {
-    return this.opponentPokemonCurrentX >= this.opponentPokemonStartX;
-  }
-
-  private playerPokemonFaded() {
-    return this.playerPokemon.alpha <= 0;
-  }
-
-  private opponentPokemonFaded() {
-    return this.opponentPokemon.alpha <= 0;
-  }
-
-  private initializePlayerPositions() {
-    this.playerStartX = this.game.config.width as number;
-    this.playerEndX = 50;
-    this.playerBaseStartX = this.playerStartX - 50;
-    this.playerBaseEndX = 0;
-    this.playerPartyBallEndX = 210;
-    this.playerPokemonStartX = 90;
-    this.playerPokemonCurrentX = this.playerPokemonStartX;
-    this.playerPokemonEndX = 130;
-  }
-
-  private initializeOpponentPositions() {
-    this.opponentStartX = 0;
-    this.opponentEndX = 210;
-    this.opponentBaseStartX = this.opponentStartX - 60;
-    this.opponentBaseEndX = 150;
-    this.opponentPartyBallEndX = 110;
-    this.opponentPokemonStartX = 250;
-    this.opponentPokemonCurrentX = this.opponentPokemonStartX;
-    this.opponentPokemonEndX = 210;
   }
 
   private createAnims() {
     for (let i = 0; i < pokeBalls.length; i++) {
       createPokeBallAnim(this.anims, pokeBalls[i]);
     }
-    for (let i = 0; i < pokemonFrames.length; i++) {
-      this.frameQuantitiesBack[i] = createPokemonBackAnim(
-        this.anims,
-        pokemonFrames[i].pokedexNumber,
-        pokemonFrames[i].backFrames
-      );
-      this.frameQuantitiesFront[i] = createPokemonFrontAnim(
-        this.anims,
-        pokemonFrames[i].pokedexNumber,
-        pokemonFrames[i].frontFrames
-      );
+  }
+
+  private async managePressZPlayerIntro() {
+    sceneEvents.emit('new-text');
+    if (!this.sentIntroNotification) {
+      this.sentIntroNotification = true;
+      await sendBattleIntroNotification(this.user.userID);
+      const sse = new EventSource(`${url}/battle/wait-intro-upper`);
+      sse.addEventListener('message', (ev) => {
+        console.log('Upper: ', ev.data);
+        sse.close();
+        const serialNumber = parseInt(ev.data);
+        if (serialNumber == 1) {
+          sceneEvents.emit('reset-intro-data');
+        }
+        sceneEvents.emit('send-intro-to-lower');
+        this.state = BattleState.ENTERING_PARTY_BALL;
+        this.introManager.visibleOpponentPartyBar();
+        this.introManager.visiblePlayerPartyBar();
+        this.introManager.visiblePlayerPartyBalls();
+        this.introManager.visibleOpponentPartyBalls();
+        this.waitZ = false;
+      });
     }
   }
 
-  private managePressZPlayerIntro() {
-    sceneEvents.emit('new-text');
-    this.state = BattleState.ENTERING_PARTY_BALL;
-    this.playerPartyBar.visible = true;
-    this.opponentPartyBar.visible = true;
-    this.playerPartyBalls.forEach((ball) => {
-      ball.visible = true;
-    });
-    this.opponentPartyBalls.forEach((ball) => {
-      ball.visible = true;
-    });
-    this.waitZ = false;
+  private async sendIntroNotificationToLower() {
+    await sendBattleIntroNotificationToLower(this.user.userID);
   }
 
-  private manangePressZBattleStart(healthManager: BattleSceneHealthManager) {
-    this.waitZ = false;
-    this.createSSE(healthManager);
+  private async sendChoiceNotificationToLower() {
+    await sendBattleChoiceNotificationToLower(this.user.userID);
   }
 
-  private createInputKeyboard(healthManager: BattleSceneHealthManager) {
+  private async resetIntroData() {
+    await sendResetIntroData();
+  }
+
+  private async resetChoiceData(
+    opponentData: string,
+    playerData: string,
+    velocity: number
+  ) {
+    await sendResetChoiceData();
+    this.decideTurn(opponentData, playerData, velocity);
+  }
+
+  private async getOpponentChoice(playerData: string) {
+    this.opponentData = await getOpponentChoicePromise(this.opponent.userID);
+    let [opponentMessageType, velocityString] = this.opponentData.split(',');
+    let velocity = parseInt(velocityString);
+    const serialNumber = await getSerialNumber();
+    console.log('From opponent: ', this.opponentData);
+    console.log('Player data: ', playerData);
+    if (serialNumber === 1) {
+      console.log('RESET CHOICE');
+      sceneEvents.emit(
+        'reset-choice-data',
+        this.opponentData,
+        playerData,
+        velocity
+      );
+    } else {
+      this.decideTurn(this.opponentData, playerData, velocity);
+    }
+  }
+
+  private decideTurn(
+    opponentData: string,
+    playerData: string,
+    velocity: number
+  ) {
+    //Both have choose switch or item
+    let [messageType] = playerData.split(',');
+    if (velocity === 999 && messageType !== 'ATTACK') {
+      if (this.user.userID === 0) {
+        console.log('switch user 0');
+        this.turn = 1; //TODO: Then will be the turn of user 1
+        sceneEvents.emit('manage-action', playerData, opponentData);
+      } else {
+        this.turn = 2;
+        sceneEvents.emit('manage-opponent-action', opponentData, playerData);
+      }
+      //The opponent has chosen a switch or to use an item
+    } else if (velocity === 999 && messageType === 'ATTACK') {
+      this.turn = 2;
+      sceneEvents.emit('manage-opponent-action', opponentData, playerData);
+      //I've chosen to switch or use an item therefore I'm the first
+    } else if (velocity !== 999 && messageType !== 'ATTACK') {
+      this.turn = 1;
+      sceneEvents.emit('manage-action', playerData, opponentData);
+      //Both have chosen to attack
+    } else if (velocity !== 999 && messageType === 'ATTACK') {
+      const playerPokemonSpeed = this.playerPokemons[this.playerPokemonIndex]
+        .speed;
+      const opponentPokemonSpeed = this.opponentPokemons[
+        this.opponentPokemonIndex
+      ].speed;
+      //My pokemon is faster then it's my turn
+      if (playerPokemonSpeed > opponentPokemonSpeed) {
+        this.turn = 1;
+        sceneEvents.emit('manage-action', playerData, opponentData);
+        //Same speed
+      } else if (playerPokemonSpeed === opponentPokemonSpeed) {
+        if (this.user.userID === 0) {
+          this.turn = 1; //TODO: Then will be the turn of user 0
+          sceneEvents.emit('manage-action', playerData, opponentData);
+        } else {
+          this.turn = 2;
+          sceneEvents.emit('manage-opponent-action', opponentData, playerData);
+        }
+        //Opponent's pokemon is faster
+      } else {
+        this.turn = 2;
+        sceneEvents.emit('manage-opponent-action', opponentData, playerData);
+      }
+    }
+  }
+
+  private async manangePressZBattleStart() {
+    this.waitZ = false;
+    this.createSSE();
+  }
+
+  private createInputKeyboard() {
     this.input.keyboard.on(
       'keydown-Z',
       () => {
@@ -801,7 +1102,7 @@ export default class BattleScene extends Phaser.Scene {
               break;
             }
             case BattleState.BATTLE_START: {
-              this.manangePressZBattleStart(healthManager);
+              this.manangePressZBattleStart();
               break;
             }
           }
@@ -818,5 +1119,22 @@ export default class BattleScene extends Phaser.Scene {
     sceneEvents.on('end-text', () => {
       this.displayText = false;
     });
+  }
+
+  private async sendOutPlayerPokemon() {
+    await sendPlayerPokemonIndex(this.playerPokemonIndex, this.user.userID);
+  }
+
+  private isRelavant(messageType: string): boolean {
+    for (let i = 0; i < relevantMessageTypes.length; i++) {
+      if (messageType === relevantMessageTypes[i]) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private async notifyPokemonFainted(pokemonState: string) {
+    await sendPokemonFainted(this.user.userID, pokemonState);
   }
 }

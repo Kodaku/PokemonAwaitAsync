@@ -48,6 +48,6 @@ export class Preloader extends Phaser.Scene {
   }
 
   create() {
-    this.scene.start('login');
+    this.scene.start('battle-preloader');
   }
 }

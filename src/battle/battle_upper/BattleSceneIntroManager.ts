@@ -44,7 +44,9 @@ export default class BattleSceneIntroManager {
 
   public createIntroGraphics(
     battleGraphics: BattleSceneGraphics,
-    bgNumber: number
+    bgNumber: number,
+    playerSprite: string,
+    opponentSprite: string
   ) {
     const bg = battleGraphics.createBackground(bgNumber);
     // add player-base
@@ -58,10 +60,14 @@ export default class BattleSceneIntroManager {
       this.opponentBaseStartX
     );
     //add player image
-    this.playerImage = battleGraphics.createPlayerImage(this.playerStartX);
+    this.playerImage = battleGraphics.createPlayerImage(
+      this.playerStartX,
+      playerSprite
+    );
     // add enemy image
     this.opponentImage = battleGraphics.createOpponentImage(
-      this.opponentStartX
+      this.opponentStartX,
+      opponentSprite
     );
     // barra sfere giocatore
     this.playerPartyBar = battleGraphics.createPlayerPartyBar();
@@ -81,11 +87,129 @@ export default class BattleSceneIntroManager {
     this.opponentPokeBall = battleGraphics.createOpponentPokeBall();
   }
 
-  public getOpponentPokeBall() {
-    return this.opponentPokeBall;
+  public playOpponentPokeBall() {
+    this.opponentPokeBall.visible = true;
+    this.opponentPokeBall.anims.play('poke-ball-anim-0', true);
   }
 
-  public getPlayerPokeBall() {
-    return this.playerPokeBall;
+  public invisibleOpponentPokeBall() {
+    this.opponentPokeBall.visible = false;
   }
+
+  public playPlayerPokeBall() {
+    this.playerPokeBall.visible = true;
+    this.playerPokeBall.anims.play('poke-ball-anim-0', true);
+  }
+
+  public invisiblePlayerPokeBall() {
+    this.playerPokeBall.visible = false;
+  }
+
+  public invisibleOpponentPartyBar() {
+    this.opponentPartyBar.visible = false;
+  }
+
+  public visibleOpponentPartyBar() {
+    this.opponentPartyBar.visible = true;
+  }
+
+  public visiblePlayerPartyBar() {
+    this.playerPartyBar.visible = true;
+  }
+
+  public invisiblePlayerPartyBar() {
+    this.playerPartyBar.visible = false;
+  }
+
+  public invisiblePlayerPartyBalls() {
+    this.playerPartyBalls.forEach((ball) => {
+      ball.visible = false;
+    });
+  }
+
+  public invisibleOpponentPartyBalls() {
+    this.opponentPartyBalls.forEach((ball) => {
+      ball.visible = false;
+    });
+  }
+
+  public visibleOpponentPartyBalls() {
+    this.opponentPartyBalls.forEach((ball) => {
+      ball.visible = true;
+    });
+  }
+
+  public visiblePlayerPartyBalls() {
+    this.playerPartyBalls.forEach((ball) => {
+      ball.visible = true;
+    });
+  }
+
+  public setPlayerBaseX() {
+    this.playerBase.setX((this.playerBaseStartX -= 2));
+  }
+
+  public setOpponentBaseX() {
+    this.opponentBase.setX((this.opponentBaseStartX += 2));
+  }
+
+  public setPlayerImageX() {
+    this.playerImage.setX((this.playerStartX -= 2));
+  }
+
+  public setPlayerImageAlpha() {
+    this.playerImage.alpha -= 0.02;
+  }
+
+  public setOpponentImageX() {
+    this.opponentImage.setX((this.opponentStartX += 2));
+  }
+
+  public setOpponentImageAlpha() {
+    this.opponentImage.alpha -= 0.02;
+  }
+
+  public enterPlayerAndOpponentPartyBalls() {
+    for (let i = 0; i < this.playerPartyBalls.length; i++) {
+      this.playerPartyBalls[i].setX((this.playerPartyBallStartX[i] -= 2));
+      this.opponentPartyBalls[i].setX((this.opponentPartyBallStartX[i] += 2));
+    }
+  }
+
+  public enterPlayerPartyBalls() {
+    for (let i = 0; i < this.playerPartyBalls.length; i++) {
+      this.playerPartyBalls[i].setX((this.playerPartyBallStartX[i] -= 2));
+    }
+  }
+  public introPlayerCompleted() {
+    return (
+      this.playerBaseStartX <= this.playerBaseEndX &&
+      this.playerStartX <= this.playerEndX
+    );
+  }
+
+  public introOpponentCompleted() {
+    return (
+      this.opponentBaseStartX >= this.opponentBaseEndX &&
+      this.opponentStartX >= this.opponentEndX
+    );
+  }
+
+  public opponentPartyBallsCompleted() {
+    return this.opponentPartyBallStartX[0] >= this.opponentPartyBallEndX;
+  }
+
+  public playerPartyBallsCompleted() {
+    return this.playerPartyBallStartX[0] <= this.playerPartyBallEndX;
+  }
+
+  public opponentImageFaded() {
+    return this.opponentImage.alpha <= 0;
+  }
+
+  public playerImageFaded() {
+    return this.playerImage.alpha <= 0;
+  }
+
+  public getPlayer;
 }

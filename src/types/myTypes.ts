@@ -58,6 +58,7 @@ export type Pokemon = {
   resistances: string[];
   moveNames: string[];
   ps: number;
+  maxPs: number;
   attack: number;
   defense: number;
   specialAttack: number;
@@ -78,7 +79,7 @@ export type IncreaseItem = {
   name: string;
   description: string;
   category: string;
-  increaseAmount: string;
+  incrementAmount: string;
   increaseType: string;
 };
 

@@ -10,14 +10,14 @@ import { url } from '~/constants/Constants';
 import BattleMessageBox from '~/windowskins/BattleMessageBox';
 
 const postMyReply = (myReply: string, coupleID: number) => {
-  return new Promise((resolve: () => void) => {
+  return new Promise((resolve: (res: string) => void) => {
     axios
       .post(`${url}/couples/replys/post/${coupleID}`, {
         reply: myReply,
       })
       .then((response) => {
         console.log(response.data);
-        resolve();
+        resolve('succeess');
       });
   });
 };
@@ -43,6 +43,9 @@ export default class MessageBoxScene {
     sceneEvents.on('opponent-encounter', this.handleEncounter, this);
     sceneEvents.on('received-replys', this.handleReceivedReplys, this);
     sceneEvents.on('opening-lecture', this.handleOpeningLecture, this);
+  }
+
+  createBattleMessage() {
     sceneEvents.on('show-battle-text', this.handleBattleText, this);
   }
 
@@ -87,10 +90,8 @@ export default class MessageBoxScene {
       const replys: string[] = await getAllReplys(this.coupleID);
       console.log(replys);
       if (replys[0] === 'YES' && replys[1] === 'YES') {
-        console.log('Battle');
-        this.box = new TextBox(this.scene, this.reference);
-        this.box.setSentence('Battle start!');
-        sceneEvents.emit('display-text');
+        this.turnOff();
+        sceneEvents.emit('battle-start-from-game');
       } else if (replys[0] === 'NO' || replys[1] === 'NO') {
         this.box = new TextBox(this.scene, this.reference);
         this.box.setSentence(

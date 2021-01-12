@@ -23,6 +23,20 @@ import { getOpponentPromise } from '~/promises/couplePromises';
 import MessageBoxScene from './MessageBoxScene';
 import BagMenuUp from '~/menu_scenes/bag_menu/BagMenuUp';
 import PartyMenuUp from '~/menu_scenes/party_menu/PartyMenuUp';
+import BattleScene from '~/battle/battle_upper/BattleScene';
+import axios from 'axios';
+
+const notifyEmptyMenu = (id: number, message: string) => {
+  return new Promise((resolve: (value: string) => void) => {
+    axios
+      .get(`${url}/players/notify-empty/${id}/${message}`)
+      .then((response) => {
+        console.log('Successfully sent to lower from game');
+        console.log(response.data);
+        resolve('success');
+      });
+  });
+};
 
 enum GameState {
   PLAY,
@@ -50,7 +64,6 @@ export default class Game extends Phaser.Scene {
   private alreadyEncountered: boolean = false;
   private colliders: Phaser.Physics.Arcade.Collider[] = [];
   private gameState: GameState = GameState.PLAY;
-  private fadeRect!: Phaser.GameObjects.Rectangle;
   private menuCursor: number = 0;
   private positionInterval!: number;
   private playersPositionIntervals: number[] = [];
@@ -89,10 +102,10 @@ export default class Game extends Phaser.Scene {
       this
     );
     sceneEvents.on('S-pressed-play', this.requireMenu, this);
+    sceneEvents.on('battle-start-from-game', this.notifyBattleBegin, this);
     //make sense to pass the coupleID to the MessageBoxScene because it's important in order to wait for opponent's answers
     this.messageBoxScene = new MessageBoxScene(this, this.coupleID);
     this.messageBoxScene.create();
-    // console.log(this.opponent);
     this.totalPlayers = await getPlayersNumber();
     this.createCharactersAnims();
     this.player = this.add.player(
@@ -147,7 +160,7 @@ export default class Game extends Phaser.Scene {
         }
       }
     });
-    this.input.keyboard.on('keydown-ENTER', () => {
+    this.input.keyboard.on('keydown-Z', () => {
       if (this.gameState == GameState.MENU) {
         switch (this.menuCursor) {
           case IconSelectable.POKEMON: {
@@ -177,6 +190,7 @@ export default class Game extends Phaser.Scene {
     sceneEvents.off('end-text');
     sceneEvents.off('S-pressed-play');
     sceneEvents.off('X-pressed-menu');
+    sceneEvents.off('battle-start-from-game');
     this.messageBoxScene.turnOff();
     this.input.keyboard.off('keydown-S');
     this.input.keyboard.off('keydown-X');
@@ -184,11 +198,21 @@ export default class Game extends Phaser.Scene {
     this.input.keyboard.off('keydown-L');
     this.input.keyboard.off('keydown-U');
     this.input.keyboard.off('keydown-D');
-    this.input.keyboard.off('keydown-ENTER');
+    this.input.keyboard.off('keydown-Z');
     clearInterval(this.battleInterval);
     clearInterval(this.positionInterval);
     this.playersPositionIntervals.forEach((interval) => {
       clearInterval(interval);
+    });
+  }
+
+  private async notifyBattleBegin() {
+    await notifyEmptyMenu(this.user.userID, 'SWITCH');
+    this.removeEventsAndClearIntervals();
+    this.scene.add('battle-scene', BattleScene, true, {
+      sceneToRemove: 'game',
+      user: this.user,
+      opponent: this.opponent,
     });
   }
 
@@ -305,8 +329,8 @@ export default class Game extends Phaser.Scene {
     const sse = new EventSource(`${url}/couples/replys/get/${this.coupleID}`);
     sse.addEventListener('message', (ev) => {
       console.log(ev.data);
-      sceneEvents.emit('received-replys');
       sse.close();
+      sceneEvents.emit('received-replys');
     });
   }
 

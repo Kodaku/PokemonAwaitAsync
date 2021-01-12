@@ -39,9 +39,9 @@ export default class BattleSceneGraphics {
     return opponentBase;
   }
 
-  public createPlayerImage(playerStartX: number) {
+  public createPlayerImage(playerStartX: number, playerSprite: string) {
     const playerImage = this.scene.add
-      .image(playerStartX, 88, 'throw-ball-nate')
+      .image(playerStartX, 88, `throw-ball-${playerSprite}`)
       .setOrigin(0, 0);
     playerImage.width = 50;
     playerImage.height = 125;
@@ -51,9 +51,9 @@ export default class BattleSceneGraphics {
     return playerImage;
   }
 
-  public createOpponentImage(opponentStartX) {
+  public createOpponentImage(opponentStartX: number, opponentSprite: string) {
     const opponentImage = this.scene.add
-      .image(opponentStartX, 0, 'vs-rosa')
+      .image(opponentStartX, 0, `vs-${opponentSprite}`)
       .setOrigin(0, 0);
     opponentImage.width = 50;
     opponentImage.height = 125;
@@ -136,15 +136,15 @@ export default class BattleSceneGraphics {
     const playerPokeBall = this.scene.add.sprite(90, 150, 'player-ball');
     playerPokeBall.on(
       Phaser.Animations.Events.SPRITE_ANIMATION_KEY_COMPLETE +
-        'ultra-ball-anim-0',
+        'poke-ball-anim-0',
       function (animation, frame) {
-        playerPokeBall.anims.play('ultra-ball-anim-1', true);
+        playerPokeBall.anims.play('poke-ball-anim-1', true);
       },
       this
     );
     playerPokeBall.on(
       Phaser.Animations.Events.SPRITE_ANIMATION_KEY_COMPLETE +
-        'ultra-ball-anim-1',
+        'poke-ball-anim-1',
       function (animation, frame) {
         sceneEvents.emit('from-player-poke-ball-to-pokemon');
       },
@@ -158,15 +158,15 @@ export default class BattleSceneGraphics {
     const enemyPokeBall = this.scene.add.sprite(250, 80, 'enemy-ball');
     enemyPokeBall.on(
       Phaser.Animations.Events.SPRITE_ANIMATION_KEY_COMPLETE +
-        'ultra-ball-anim-0',
+        'poke-ball-anim-0',
       function (animation, frame) {
-        enemyPokeBall.anims.play('ultra-ball-anim-1', true);
+        enemyPokeBall.anims.play('poke-ball-anim-1', true);
       },
       this
     );
     enemyPokeBall.on(
       Phaser.Animations.Events.SPRITE_ANIMATION_KEY_COMPLETE +
-        'ultra-ball-anim-1',
+        'poke-ball-anim-1',
       function (animation, frame) {
         sceneEvents.emit('from-opponent-poke-ball-to-pokemon');
       },
@@ -196,8 +196,8 @@ export default class BattleSceneGraphics {
     return enemyLifeBar;
   }
 
-  public createPlayerPokemonName() {
-    const playerPokemonName = this.scene.add.text(180, 142, 'Template Name', {
+  public createPlayerPokemonName(pokemonName: string) {
+    const playerPokemonName = this.scene.add.text(180, 142, `${pokemonName}`, {
       stroke: '#000000',
       strokeThickness: 5,
       align: 'center',
@@ -207,8 +207,8 @@ export default class BattleSceneGraphics {
     return playerPokemonName;
   }
 
-  public createOpponentPokemonName() {
-    const opponentPokemonName = this.scene.add.text(15, 35, 'Template Name', {
+  public createOpponentPokemonName(pokemonName: string) {
+    const opponentPokemonName = this.scene.add.text(15, 35, `${pokemonName}`, {
       stroke: '#000000',
       strokeThickness: 5,
       fontSize: 12,
@@ -240,11 +240,14 @@ export default class BattleSceneGraphics {
     return enemyPokemonLevel;
   }
 
-  public createPlayerHealthText(pokemonCurrentHealth: number) {
+  public createPlayerHealthText(
+    pokemonCurrentHealth: number,
+    pokemonMaxHealth: number
+  ) {
     const healthText = this.scene.add.text(
       255,
       162,
-      `${pokemonCurrentHealth}/${555}`,
+      `${pokemonCurrentHealth}/${pokemonMaxHealth}`,
       {
         stroke: '#000000',
         strokeThickness: 5,
@@ -281,7 +284,7 @@ export default class BattleSceneGraphics {
     return opponentHpRect;
   }
 
-  private computeRectWidth(
+  public computeRectWidth(
     currentHealth: number,
     maxHealth: number,
     maxRectWidth: number

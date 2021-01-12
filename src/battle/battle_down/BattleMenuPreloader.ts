@@ -1,13 +1,14 @@
 import Phaser from 'phaser';
-import { pokemon_types } from '~/constants/Constants';
-import BattleBackground from './BattleBackground';
-import BattleBag from './BattleBag';
-import BattleItemDescription from './BattleItemDescription';
-import BattleItemMenu from './BattleItemMenu';
-import BattleMemberSwitch from './BattleMemberSwitch';
-import BattleMenu from './BattleMenu';
-import BattleMoves from './BattleMoves';
-import BattlePartyMenu from './BattlePartyMenu';
+import { itemsIndexes, pokemon_types } from '~/constants/Constants';
+import EmptyMenu from '~/menu_scenes/EmptyMenu';
+// import BattleBackground from './battle_background/BattleBackground';
+// import BattleBag from './battle_bag/BattleBag';
+// import BattleItemDescription from './battle_item_description/BattleItemDescription';
+// import BattleItemMenu from './battle_item_menu/BattleItemMenu';
+// import BattleMemberSwitch from './battle_member_switch/BattleMemberSwitch';
+// import BattleMenu from './battle_menu/BattleMenu';
+// import BattleMoves from './battle_moves/BattleMoves';
+// import BattlePartyMenu from './battle_party_menu/BattlePartyMenu';
 
 export default class BattleMenuPreloader extends Phaser.Scene {
   constructor() {
@@ -71,11 +72,17 @@ export default class BattleMenuPreloader extends Phaser.Scene {
     this.load.image('battle-moves-bg', 'battle_menu/battlemenu.png');
 
     this.load.image('selector', 'battle_menu/battleselector2.png');
+
+    for (let i = 0; i < itemsIndexes.length; i++) {
+      console.log(`item${itemsIndexes[i]}`);
+      this.load.image(
+        `item${itemsIndexes[i]}`,
+        `items/item${itemsIndexes[i]}.png`
+      );
+    }
   }
 
   create() {
-    this.scene.add('battle-menu', BattleMenu, true, {
-      sceneToRemove: 'battle-menu-preloader',
-    });
+    this.scene.start('menu-preloader');
   }
 }

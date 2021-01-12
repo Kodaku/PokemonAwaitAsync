@@ -3,13 +3,17 @@ import axios from 'axios';
 import { url } from '../constants/Constants';
 import { User } from '~/types/myTypes';
 import { createPikachuAnims } from './animations/pikachuAnims';
+import Game from './Game';
 
 const postUserPromise = (user: User) => {
-  return new Promise((resolve: () => void) => {
-    axios.post(`${url}/couples/post/${user.userID}`, {
-      user: user,
-    });
-    resolve();
+  return new Promise((resolve: (value: string) => void) => {
+    axios
+      .post(`${url}/couples/post/${user.userID}`, {
+        user: user,
+      })
+      .then((response) => {
+        resolve('success');
+      });
   });
 };
 
@@ -41,7 +45,10 @@ export default class Couples extends Phaser.Scene {
       this.sse.close();
       setTimeout(() => {
         // this.scene.remove('couples').start('game', { user: this.user });
-        this.scene.start('game', { user: this.user, sceneName: 'couples' });
+        this.scene.add('game', Game, true, {
+          user: this.user,
+          sceneName: 'couples',
+        });
       }, 3000);
     });
     this.add

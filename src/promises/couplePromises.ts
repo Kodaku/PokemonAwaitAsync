@@ -13,10 +13,10 @@ export const getOpponentPromise = (id: number) => {
 };
 
 export const knowOpponentPromise = (opponentID: number) => {
-  return new Promise((resolve: () => void) => {
+  return new Promise((resolve: (value: string) => void) => {
     axios.get(`${url}/couples/user/known/${opponentID}`).then((response) => {
       console.log('Now I know my opponent');
-      resolve();
+      resolve('success');
     });
   });
 };

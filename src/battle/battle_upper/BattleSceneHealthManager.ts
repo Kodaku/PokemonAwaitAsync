@@ -1,34 +1,132 @@
 import Phaser from 'phaser';
+import { Pokemon } from '~/types/myTypes';
+import BattleSceneGraphics from './BattleSceneGraphics';
 
 const hpRectMaxWidth = 69;
 
 export default class BattleSceneHealthManager {
-  private pokemonMaxHealth: number = 555;
-  private pokemonCurrentHealth: number;
-  private hpRect!: Phaser.GameObjects.Rectangle;
-  private healthText!: Phaser.GameObjects.Text;
-  constructor(public scene: Phaser.Scene) {
-    this.pokemonCurrentHealth = this.pokemonMaxHealth;
+  private playerPokemonMaxHealth!: number;
+  private opponentPokemonMaxHealth!: number;
+  private playerPokemonCurrentHealth!: number;
+  private opponentPokemonCurrentHealth!: number;
+  private playerHpRect!: Phaser.GameObjects.Rectangle;
+  private playerHealthText!: Phaser.GameObjects.Text;
+  private opponentHpRect!: Phaser.GameObjects.Rectangle;
+  private playerLifeBar!: Phaser.GameObjects.Image;
+  private opponentLifeBar!: Phaser.GameObjects.Image;
+  constructor(public scene: Phaser.Scene) {}
+
+  public createHealthGraphics(
+    battleGraphics: BattleSceneGraphics,
+    playerPokemon: Pokemon,
+    opponentPokemon: Pokemon
+  ) {
+    this.playerPokemonMaxHealth = playerPokemon.maxPs;
+    this.playerPokemonCurrentHealth = playerPokemon.ps;
+    this.opponentPokemonMaxHealth = opponentPokemon.maxPs;
+    this.opponentPokemonCurrentHealth = opponentPokemon.ps;
+    // Player life bar
+    this.playerLifeBar = battleGraphics.createPlayerLifeBar();
+    // Enemy life bar
+    this.opponentLifeBar = battleGraphics.createOpponentLifeBar();
+    // Player health
+    this.playerHealthText = battleGraphics.createPlayerHealthText(
+      playerPokemon.ps,
+      playerPokemon.maxPs
+    );
+    // Player life
+    this.playerHpRect = battleGraphics.createPlayerHpRect(
+      playerPokemon.ps,
+      playerPokemon.maxPs,
+      hpRectMaxWidth
+    );
+    // Enemy life
+    this.opponentHpRect = battleGraphics.createOpponentHpRect(hpRectMaxWidth);
   }
 
-  public setPokemonCurrentHealth(pokemonCurrentHealth: number) {
-    this.pokemonCurrentHealth = pokemonCurrentHealth;
+  public setPlayerHealth(
+    pokemon: Pokemon,
+    battleGraphics: BattleSceneGraphics
+  ) {
+    this.playerPokemonCurrentHealth = pokemon.ps;
+    this.playerPokemonMaxHealth = pokemon.maxPs;
+    this.computePlayerHealthColor();
+    this.playerHealthText.setText(`${pokemon.ps}/${pokemon.maxPs}`);
+    const newWidth = battleGraphics.computeRectWidth(
+      pokemon.ps,
+      pokemon.maxPs,
+      hpRectMaxWidth
+    );
+    this.playerHpRect.width = newWidth;
+    this.playerHpRect.displayWidth = this.playerHpRect.width;
   }
 
-  public setPokemonMaxHealth(pokemonMaxHealth: number) {
-    this.pokemonMaxHealth = pokemonMaxHealth;
+  public setOpponentHealth(
+    pokemon: Pokemon,
+    battleGraphics: BattleSceneGraphics
+  ) {
+    this.opponentPokemonCurrentHealth = pokemon.ps;
+    this.opponentPokemonMaxHealth = pokemon.maxPs;
+    this.computeOpponentHealthColor();
+    const newWidth = battleGraphics.computeRectWidth(
+      pokemon.ps,
+      pokemon.maxPs,
+      hpRectMaxWidth
+    );
+    this.opponentHpRect.width = newWidth;
+    this.opponentHpRect.displayWidth = this.opponentHpRect.width;
   }
 
-  public setHPRect(hpRect: Phaser.GameObjects.Rectangle) {
-    this.hpRect = hpRect;
+  public getPlayerHpRect() {
+    return this.playerHpRect;
   }
 
-  public setHealthText(healthText: Phaser.GameObjects.Text) {
-    this.healthText = healthText;
+  public opponentHpRectVisible() {
+    this.opponentHpRect.visible = true;
   }
 
-  public getPokemonCurrentHealth() {
-    return this.pokemonCurrentHealth;
+  public opponentHpRectInvisible() {
+    this.opponentHpRect.visible = false;
+  }
+
+  public playerHpRectVisible() {
+    this.playerHpRect.visible = true;
+  }
+
+  public playerHpRectInvisible() {
+    this.playerHpRect.visible = false;
+  }
+
+  public playerHpTextVisible() {
+    this.playerHealthText.visible = true;
+  }
+
+  public playerHpTextInvisible() {
+    this.playerHealthText.visible = false;
+  }
+
+  public opponentLifeBarVisible() {
+    this.opponentLifeBar.visible = true;
+  }
+
+  public opponentLifeBarInvisible() {
+    this.opponentLifeBar.visible = false;
+  }
+
+  public playerLifeBarVisible() {
+    this.playerLifeBar.visible = true;
+  }
+
+  public playerLifeBarInvisible() {
+    this.playerLifeBar.visible = false;
+  }
+
+  public getPlayerPokemonCurrentHealth() {
+    return this.playerPokemonCurrentHealth;
+  }
+
+  public getOpponentPokemonCurrentHealth() {
+    return this.opponentPokemonCurrentHealth;
   }
 
   private computeRectWidth(
@@ -43,45 +141,105 @@ export default class BattleSceneHealthManager {
     return new_width;
   }
 
-  public increaseHealth() {
-    this.pokemonCurrentHealth++;
-    if (this.pokemonCurrentHealth >= this.pokemonMaxHealth) {
-      this.pokemonCurrentHealth = this.pokemonMaxHealth;
+  public increasePlayerPokemonHealth() {
+    this.playerPokemonCurrentHealth++;
+    if (this.playerPokemonCurrentHealth >= this.playerPokemonMaxHealth) {
+      this.playerPokemonCurrentHealth = this.playerPokemonMaxHealth;
     }
-    this.hpRect.width = this.computeRectWidth(
-      this.pokemonCurrentHealth,
-      this.pokemonMaxHealth,
+    this.playerHpRect.width = this.computeRectWidth(
+      this.playerPokemonCurrentHealth,
+      this.playerPokemonMaxHealth,
       hpRectMaxWidth
     );
-    this.hpRect.displayWidth = this.hpRect.width;
-    if (this.healthText) {
-      this.healthText.setText(`${this.pokemonCurrentHealth}/${555}`);
+    this.playerHpRect.displayWidth = this.playerHpRect.width;
+    if (this.playerHealthText) {
+      this.playerHealthText.setText(
+        `${this.playerPokemonCurrentHealth}/${this.playerPokemonMaxHealth}`
+      );
+    }
+    this.computePlayerHealthColor();
+  }
+
+  public decreasePlayerPokemonHealth() {
+    this.playerPokemonCurrentHealth--;
+    if (this.playerPokemonCurrentHealth <= 0) {
+      this.playerPokemonCurrentHealth = 0;
+    }
+    this.playerHpRect.width = this.computeRectWidth(
+      this.playerPokemonCurrentHealth,
+      this.playerPokemonMaxHealth,
+      hpRectMaxWidth
+    );
+    this.playerHpRect.displayWidth = this.playerHpRect.width;
+    if (this.playerHealthText) {
+      this.playerHealthText.setText(
+        `${this.playerPokemonCurrentHealth}/${this.playerPokemonMaxHealth}`
+      );
+    }
+    this.computePlayerHealthColor();
+  }
+
+  public increaseOpponentPokemonHealth() {
+    this.opponentPokemonCurrentHealth++;
+    if (this.opponentPokemonCurrentHealth >= this.opponentPokemonMaxHealth) {
+      this.opponentPokemonCurrentHealth = this.opponentPokemonMaxHealth;
+    }
+    this.opponentHpRect.width = this.computeRectWidth(
+      this.opponentPokemonCurrentHealth,
+      this.opponentPokemonMaxHealth,
+      hpRectMaxWidth
+    );
+    this.opponentHpRect.displayWidth = this.opponentHpRect.width;
+    this.computeOpponentHealthColor();
+  }
+
+  public decreaseOpponentPokemonHealth() {
+    this.opponentPokemonCurrentHealth--;
+    if (this.opponentPokemonCurrentHealth <= 0) {
+      this.opponentPokemonCurrentHealth = 0;
+    }
+    this.opponentHpRect.width = this.computeRectWidth(
+      this.opponentPokemonCurrentHealth,
+      this.opponentPokemonMaxHealth,
+      hpRectMaxWidth
+    );
+    this.opponentHpRect.displayWidth = this.opponentHpRect.width;
+    this.computeOpponentHealthColor();
+  }
+
+  private computePlayerHealthColor() {
+    if (
+      this.playerPokemonCurrentHealth <
+        this.playerPokemonMaxHealth * (40 / 100) &&
+      this.playerPokemonCurrentHealth >=
+        this.playerPokemonMaxHealth * (15 / 100)
+    ) {
+      this.playerHpRect.fillColor = 0xf7b500;
+    } else if (
+      this.playerPokemonCurrentHealth <
+      this.playerPokemonMaxHealth * (15 / 100)
+    ) {
+      this.playerHpRect.fillColor = 0xe71410;
+    } else {
+      this.playerHpRect.fillColor = 0x00bf37;
     }
   }
 
-  public decreaseHealth() {
-    this.pokemonCurrentHealth--;
-    if (this.pokemonCurrentHealth <= 0) {
-      this.pokemonCurrentHealth = 0;
-    }
-    this.hpRect.width = this.computeRectWidth(
-      this.pokemonCurrentHealth,
-      this.pokemonMaxHealth,
-      hpRectMaxWidth
-    );
-    this.hpRect.displayWidth = this.hpRect.width;
-    if (this.healthText) {
-      this.healthText.setText(`${this.pokemonCurrentHealth}/${555}`);
-    }
+  private computeOpponentHealthColor() {
     if (
-      this.pokemonCurrentHealth < this.pokemonMaxHealth * (40 / 100) &&
-      this.pokemonCurrentHealth >= this.pokemonMaxHealth * (15 / 100)
+      this.opponentPokemonCurrentHealth <
+        this.opponentPokemonMaxHealth * (40 / 100) &&
+      this.opponentPokemonCurrentHealth >=
+        this.opponentPokemonMaxHealth * (15 / 100)
     ) {
-      this.hpRect.fillColor = 0xf7b500;
-    } else if (this.pokemonCurrentHealth < this.pokemonMaxHealth * (15 / 100)) {
-      this.hpRect.fillColor = 0xe71410;
+      this.opponentHpRect.fillColor = 0xf7b500;
+    } else if (
+      this.opponentPokemonCurrentHealth <
+      this.opponentPokemonMaxHealth * (15 / 100)
+    ) {
+      this.opponentHpRect.fillColor = 0xe71410;
     } else {
-      this.hpRect.fillColor = 0x00bf37;
+      this.opponentHpRect.fillColor = 0x00bf37;
     }
   }
 }

@@ -3,6 +3,10 @@ import axios from 'axios';
 import { url } from '~/constants/Constants';
 import { sceneEvents } from '~/events/EventCenter';
 import Menu from './Menu';
+import BattleMenu from '~/battle/battle_down/battle_menu/BattleMenu';
+import BattleBackground, {
+  BackgroundState,
+} from '~/battle/battle_down/battle_background/BattleBackground';
 
 function getName(): string {
   let url = document.location.href;
@@ -18,6 +22,16 @@ const getIDPromise = (userName: string) => {
       const id = parseInt(data.id);
       console.log('User id: ' + id);
       resolve(id);
+    });
+  });
+};
+
+const getReplyFromUser = (id: number) => {
+  return new Promise((resolve: (value: string) => void) => {
+    axios.get(`${url}/players/notify/delayed/${id}`).then((response) => {
+      const data = response.data;
+      console.log(data.message);
+      resolve(data.message);
     });
   });
 };
@@ -44,16 +58,63 @@ export default class EmptyMenu extends Phaser.Scene {
     this.input.keyboard.on('keydown-S', () => {
       sceneEvents.emit('S-pressed');
     });
+    this.input.keyboard.on('keydown-A', () => {
+      sceneEvents.emit('A-pressed');
+    });
     sceneEvents.on('S-pressed', this.displayMenu, this);
+    sceneEvents.on('A-pressed', this.tryLaunchBattle, this);
   }
 
   private displayMenu() {
-    this.input.keyboard.off('keydown-S');
-    sceneEvents.off('S-pressed');
+    this.switchOff();
     this.scene.add('menu', Menu, true, {
       id: this.id,
       sceneName: 'empty-menu',
     });
+  }
+
+  private switchOff() {
+    this.input.keyboard.off('keydown-S');
+    this.input.keyboard.off('keydown-A');
+    sceneEvents.off('S-pressed');
+    sceneEvents.off('A-pressed');
+  }
+
+  private tryLaunchBattle() {
+    this.createSSE();
+  }
+
+  private async createSSE() {
+    const sse = new EventSource(`${url}/players/notify/delayed/${this.id}`);
+    sse.addEventListener('message', (ev) => {
+      console.log(ev.data);
+      const message = ev.data;
+      sse.close();
+      if (message === 'SWITCH') {
+        this.switchOff();
+        console.log('Switching ', ev.data);
+        this.scene.add('battle-background', BattleBackground, true, {
+          sceneToRemove: 'empty-menu',
+          userID: this.id,
+          state: BackgroundState.INTRO,
+        });
+      } else {
+        console.log('Nothing special from the server: from EmptyMenu');
+      }
+    });
+    // let reply = '';
+    // while (reply === '') {
+    //   reply = await getReplyFromUser(this.id);
+    // }
+    // if (reply === 'SWITCH') {
+    //   this.switchOff();
+    //   console.log('Switching');
+    //   this.scene.add('battle-menu', BattleMenu, true, {
+    //     sceneToRemove: 'empty-menu',
+    //   });
+    // } else {
+    //   console.log('Nothing special from the server: from EmptyMenu');
+    // }
   }
 
   private setBackgroundSize() {

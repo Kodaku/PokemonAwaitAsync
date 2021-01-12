@@ -27,7 +27,7 @@ const config: Phaser.Types.Core.GameConfig = {
       debug: false,
     },
   },
-  scene: [BattlePreloader, Preloader, Login, Couples, Game, MessageBoxScene],
+  scene: [Preloader, BattlePreloader, Login, Couples, MessageBoxScene],
 };
 
 export default new Phaser.Game(config);

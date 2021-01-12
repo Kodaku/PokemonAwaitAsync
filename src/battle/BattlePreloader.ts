@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { pokedexNumbers } from '~/constants/Constants';
+import Login from '~/scenes/Login';
 import BattleScene from './battle_upper/BattleScene';
 
 export default class BattlePreloader extends Phaser.Scene {
@@ -89,8 +90,6 @@ export default class BattlePreloader extends Phaser.Scene {
   }
 
   create() {
-    this.scene.add('battle-scene', BattleScene, true, {
-      sceneToRemove: 'battle-preloader',
-    });
+    this.scene.start('login');
   }
 }

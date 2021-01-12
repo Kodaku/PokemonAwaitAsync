@@ -19,20 +19,6 @@ export default class BattleMessageBox extends Box {
   }
 
   public setSentence(text: string) {
-    // super.setSentence(text);
-    // this.scene.input.keyboard.on('keydown-A', () => {
-    //   if (this.waitA) {
-    //     this.texts.forEach((el) => el.destroy());
-    //     this.texts = [];
-    //     this.pause.setVisible(false);
-    //     this.textY = this.startY;
-    //     this.textX = this.startX;
-    //     if (this.waitDestroy && this.waitA) {
-    //       sceneEvents.emit('end-text');
-    //     }
-    //     this.waitA = false;
-    //   }
-    // });
     this.sentence = text;
     this.texts = [];
     this.counter = 0;
