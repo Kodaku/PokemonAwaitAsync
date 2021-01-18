@@ -1,0 +1,60 @@
+{
+    "frames": [
+        {
+            "filename": "pikachu_run_1",
+            "frame": {
+                "w": 214,
+                "h": 127,
+                "x": 0,
+                "y": 0
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "pikachu_run_0",
+            "frame": {
+                "w": 205,
+                "h": 122,
+                "x": 0,
+                "y": 127
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "pikachu_run_2",
+            "frame": {
+                "w": 200,
+                "h": 135,
+                "x": 214,
+                "y": 0
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "pikachu_run_3",
+            "frame": {
+                "w": 187,
+                "h": 146,
+                "x": 0,
+                "y": 249
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        }
+    ],
+    "meta": {
+        "description": "Atlas generado con Atlas Packer Gamma V2",
+        "web": "https://gammafp.github.io/atlas-packer-phaser/"
+    }
+}
