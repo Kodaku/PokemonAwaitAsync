@@ -8,7 +8,7 @@ const div = document.getElementById('container');
 button.onclick = function () {
   const value = input.value;
   const newUrl =
-    'http://localhost:1234/index.html?name=' + encodeURIComponent(value);
+    'http://localhost:8000/index.html?name=' + encodeURIComponent(value);
   if (value) {
     console.log(`This is the input value: ${value}`);
     axios
