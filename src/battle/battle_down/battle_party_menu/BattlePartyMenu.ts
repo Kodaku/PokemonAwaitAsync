@@ -99,6 +99,15 @@ const notifyOpponentChoice = (
   });
 };
 
+const getPokemonHealthPromise = (id: number, index: number) => {
+  return new Promise((resolve: (value: number) => void) => {
+    axios.get(`${url}/health/get-one/${id}/${index}`).then((response) => {
+      console.log(response.data);
+      resolve(parseInt(response.data.data));
+    });
+  });
+};
+
 export default class BattlePartyMenu extends Phaser.Scene {
   private cursor!: number;
   private keyCode!: number;
@@ -137,6 +146,10 @@ export default class BattlePartyMenu extends Phaser.Scene {
     }
     this.teamMembers = await getTeamPromise(this.userID);
     this.pokemons = await getPokemons(this.teamMembers);
+    //TODO: Get healths
+    for (let i = 0; i < this.pokemons.length; i++) {
+      this.pokemons[i].ps = await getPokemonHealthPromise(this.userID, i);
+    }
     this.cursor = -1;
     for (let i = 0; i < this.pokemons.length; i++) {
       createIconAnims(this.anims, this.pokemons[i].pokedexNumber);
@@ -147,7 +160,7 @@ export default class BattlePartyMenu extends Phaser.Scene {
     let boxX = 0;
     let boxY = 13;
     for (let i = 0; i < 6; i++) {
-      //: Party member box and selector
+      //Party member box and selector
       const partyMemberBox = graphicsManager.createPartyMemberBox(boxX, boxY);
       const partyMemberBoxSelector = graphicsManager.createPartyMemberBoxSelector(
         boxX,
@@ -240,27 +253,41 @@ export default class BattlePartyMenu extends Phaser.Scene {
         if (this.cursor !== -1) {
           switch (this.state) {
             case BattlePartyState.SWITCH: {
-              this.switchOff();
-              this.scene.add('battle-member-switch', BattleMemberSwitch, true, {
-                sceneToRemove: 'battle-party-menu',
-                bPressedCount: 0,
-                state: BattlePartyState.SWITCH,
-                pokemons: this.pokemons,
-                inBattleIndex: this.cursor,
-                userID: this.userID,
-              });
+              if (this.pokemons[this.cursor].ps > 0) {
+                this.switchOff();
+                this.scene.add(
+                  'battle-member-switch',
+                  BattleMemberSwitch,
+                  true,
+                  {
+                    sceneToRemove: 'battle-party-menu',
+                    bPressedCount: 0,
+                    state: BattlePartyState.SWITCH,
+                    pokemons: this.pokemons,
+                    inBattleIndex: this.cursor,
+                    userID: this.userID,
+                  }
+                );
+              }
               break;
             }
             case BattlePartyState.SWITCH_FAINTED: {
-              this.switchOff();
-              this.scene.add('battle-member-switch', BattleMemberSwitch, true, {
-                sceneToRemove: 'battle-party-menu',
-                bPressedCount: 0,
-                state: BattlePartyState.SWITCH_FAINTED,
-                pokemons: this.pokemons,
-                inBattleIndex: this.cursor,
-                userID: this.userID,
-              });
+              if (this.pokemons[this.cursor].ps > 0) {
+                this.switchOff();
+                this.scene.add(
+                  'battle-member-switch',
+                  BattleMemberSwitch,
+                  true,
+                  {
+                    sceneToRemove: 'battle-party-menu',
+                    bPressedCount: 0,
+                    state: BattlePartyState.SWITCH_FAINTED,
+                    pokemons: this.pokemons,
+                    inBattleIndex: this.cursor,
+                    userID: this.userID,
+                  }
+                );
+              }
               break;
             }
             case BattlePartyState.CURE_HEALTH: {

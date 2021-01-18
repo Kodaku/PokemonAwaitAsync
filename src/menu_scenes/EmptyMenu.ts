@@ -50,6 +50,7 @@ export default class EmptyMenu extends Phaser.Scene {
   }
 
   async create(data: { sceneName: string }) {
+    console.log('Screen dimension', screen.width, screen.height);
     console.log(data);
     this.scene.remove(data.sceneName);
     this.id = await getIDPromise(this.userName);

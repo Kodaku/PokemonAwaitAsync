@@ -56,13 +56,13 @@ export default class BattleItemMenu extends Phaser.Scene {
     //Background
     const bg = graphicsManager.createBackground();
     //Items icons
-    let itemX = 10;
-    let itemY = 13;
+    let itemX = screen.width * 0.0073206442;
+    let itemY = screen.width * 0.0095168375;
     for (let i = 0; i < this.items.length; i++) {
       //Panel and selector
       if (i > 5 && i % 6 == 0) {
-        itemX = 10;
-        itemY = 13;
+        itemX = screen.width * 0.0073206442;
+        itemY = screen.width * 0.0095168375;
       }
       const menuItem = graphicsManager.createMenuItem(itemX, itemY);
       const menuItemSelector = graphicsManager.createMenuItemSelector(
@@ -102,10 +102,10 @@ export default class BattleItemMenu extends Phaser.Scene {
         obj.itemQuantity.visible = false;
       }
 
-      itemX += menuItem.width + 10;
+      itemX += menuItem.width + screen.width * 0.0073206442;
       if (itemX + 20 > (this.game.config.width as number)) {
-        itemX = 13;
-        itemY += menuItem.height + 5;
+        itemX = screen.width * 0.0095168375;
+        itemY += menuItem.height + screen.width * 0.0036603221;
       }
       this.panels.push(menuItem);
       this.selectors.push(menuItemSelector);

@@ -17,8 +17,8 @@ export default class BattleItemMenuGraphicsManager {
     const menuItem = this.scene.add
       .image(itemX, itemY, 'menu-item-unselected')
       .setOrigin(0, 0);
-    menuItem.width = 150;
-    menuItem.height = 60;
+    menuItem.width = screen.width * 0.1098096633;
+    menuItem.height = screen.width * 0.0439238653;
     menuItem.displayWidth = menuItem.width;
     menuItem.displayHeight = menuItem.height;
     return menuItem;
@@ -28,8 +28,8 @@ export default class BattleItemMenuGraphicsManager {
     const menuItemSelector = this.scene.add
       .image(itemX, itemY, 'selector')
       .setOrigin(0, 0);
-    menuItemSelector.width = 150;
-    menuItemSelector.height = 60;
+    menuItemSelector.width = screen.width * 0.1098096633;
+    menuItemSelector.height = screen.width * 0.0439238653;
     menuItemSelector.displayWidth = menuItemSelector.width;
     menuItemSelector.displayHeight = menuItemSelector.height;
     menuItemSelector.visible = false;
@@ -43,16 +43,26 @@ export default class BattleItemMenuGraphicsManager {
     quantity: number
   ) {
     const itemText = this.scene.add
-      .text(itemX + 35, itemY + 10, itemName, {
-        fontSize: 12,
-        align: 'center',
-      })
+      .text(
+        itemX + screen.width * 0.0256222548,
+        itemY + screen.width * 0.0073206442,
+        itemName,
+        {
+          fontSize: screen.width * 0.0087847731,
+          align: 'center',
+        }
+      )
       .setOrigin(0, 0);
     const itemQuantity = this.scene.add
-      .text(itemX + 60, itemY + 35, `x${quantity}`, {
-        fontSize: 12,
-        align: 'center',
-      })
+      .text(
+        itemX + screen.width * 0.0439238653,
+        itemY + screen.width * 0.0256222548,
+        `x${quantity}`,
+        {
+          fontSize: screen.width * 0.0087847731,
+          align: 'center',
+        }
+      )
       .setOrigin(0, 0);
     return {
       itemName: itemText,
@@ -62,10 +72,14 @@ export default class BattleItemMenuGraphicsManager {
 
   public createItemImage(itemX: number, itemY: number, itemIndex: string) {
     const itemImage = this.scene.add
-      .image(itemX + 15, itemY + 28, `item${itemIndex}`)
+      .image(
+        itemX + screen.width * 0.0109809663,
+        itemY + screen.width * 0.0204978038,
+        `item${itemIndex}`
+      )
       .setOrigin(0, 0);
-    itemImage.width = 30;
-    itemImage.height = 30;
+    itemImage.width = screen.width * 0.0219619327;
+    itemImage.height = screen.width * 0.0219619327;
     itemImage.displayWidth = itemImage.width;
     itemImage.displayHeight = itemImage.height;
     return itemImage;
@@ -73,10 +87,14 @@ export default class BattleItemMenuGraphicsManager {
 
   public createMenuInfo() {
     const menuInfo = this.scene.add
-      .image(110, 225, 'menu-info')
+      .image(
+        screen.width * 0.0805270864,
+        screen.width * 0.1647144949,
+        'menu-info'
+      )
       .setOrigin(0, 0);
-    menuInfo.width = 170;
-    menuInfo.height = 60;
+    menuInfo.width = screen.width * 0.1244509517;
+    menuInfo.height = screen.width * 0.0439238653;
     menuInfo.displayWidth = menuInfo.width;
     menuInfo.displayHeight = menuInfo.height;
     return menuInfo;
@@ -99,25 +117,37 @@ export default class BattleItemMenuGraphicsManager {
         break;
     }
     this.scene.add
-      .text(130, 240, text, { fontSize: 18, align: 'center' })
-      .setOrigin(0, 0);
-  }
-
-  public createPageText(pageIndex: number, totalPages: number) {
-    return this.scene.add
-      .text(230, 250, `${pageIndex}/${totalPages}`, {
-        fontSize: 18,
+      .text(screen.width * 0.0951683748, screen.width * 0.1756954612, text, {
+        fontSize: screen.width * 0.0131771596,
         align: 'center',
       })
       .setOrigin(0, 0);
   }
 
+  public createPageText(pageIndex: number, totalPages: number) {
+    return this.scene.add
+      .text(
+        screen.width * 0.168374817,
+        screen.width * 0.1830161054,
+        `${pageIndex}/${totalPages}`,
+        {
+          fontSize: screen.width * 0.0131771596,
+          align: 'center',
+        }
+      )
+      .setOrigin(0, 0);
+  }
+
   public createLeftArrow() {
     const leftArrow = this.scene.add
-      .image(5, 248, 'left-arrow')
+      .image(
+        screen.width * 0.0036603221,
+        screen.width * 0.1815519766,
+        'left-arrow'
+      )
       .setOrigin(0, 0);
-    leftArrow.width = 40;
-    leftArrow.height = 40;
+    leftArrow.width = screen.width * 0.0292825769;
+    leftArrow.height = screen.width * 0.0292825769;
     leftArrow.displayWidth = leftArrow.width;
     leftArrow.displayHeight = leftArrow.height;
     return leftArrow;
@@ -125,10 +155,14 @@ export default class BattleItemMenuGraphicsManager {
 
   public createLeftArrowSelector() {
     const leftArrowSelector = this.scene.add
-      .image(5, 248, 'selector')
+      .image(
+        screen.width * 0.0036603221,
+        screen.width * 0.1815519766,
+        'selector'
+      )
       .setOrigin(0, 0);
-    leftArrowSelector.width = 40;
-    leftArrowSelector.height = 40;
+    leftArrowSelector.width = screen.width * 0.0292825769;
+    leftArrowSelector.height = screen.width * 0.0292825769;
     leftArrowSelector.displayWidth = leftArrowSelector.width;
     leftArrowSelector.displayHeight = leftArrowSelector.height;
     leftArrowSelector.visible = false;
@@ -137,10 +171,14 @@ export default class BattleItemMenuGraphicsManager {
 
   public createRightArrow() {
     const rightArrow = this.scene.add
-      .image(63, 248, 'right-arrow')
+      .image(
+        screen.width * 0.0461200586,
+        screen.width * 0.1815519766,
+        'right-arrow'
+      )
       .setOrigin(0, 0);
-    rightArrow.width = 40;
-    rightArrow.height = 40;
+    rightArrow.width = screen.width * 0.0292825769;
+    rightArrow.height = screen.width * 0.0292825769;
     rightArrow.displayWidth = rightArrow.width;
     rightArrow.displayHeight = rightArrow.height;
     return rightArrow;
@@ -148,10 +186,14 @@ export default class BattleItemMenuGraphicsManager {
 
   public createRightArrowSelector() {
     const rightArrowSelector = this.scene.add
-      .image(63, 248, 'selector')
+      .image(
+        screen.width * 0.0461200586,
+        screen.width * 0.1815519766,
+        'selector'
+      )
       .setOrigin(0, 0);
-    rightArrowSelector.width = 40;
-    rightArrowSelector.height = 40;
+    rightArrowSelector.width = screen.width * 0.0292825769;
+    rightArrowSelector.height = screen.width * 0.0292825769;
     rightArrowSelector.displayWidth = rightArrowSelector.width;
     rightArrowSelector.displayHeight = rightArrowSelector.height;
     rightArrowSelector.visible = false;
@@ -160,10 +202,14 @@ export default class BattleItemMenuGraphicsManager {
 
   public createBackImage() {
     const backImage = this.scene.add
-      .image(285, 248, 'back-arrow')
+      .image(
+        screen.width * 0.2086383602,
+        screen.width * 0.1815519766,
+        'back-arrow'
+      )
       .setOrigin(0, 0);
-    backImage.width = 40;
-    backImage.height = 40;
+    backImage.width = screen.width * 0.0292825769;
+    backImage.height = screen.width * 0.0292825769;
     backImage.displayWidth = backImage.width;
     backImage.displayHeight = backImage.height;
     return backImage;

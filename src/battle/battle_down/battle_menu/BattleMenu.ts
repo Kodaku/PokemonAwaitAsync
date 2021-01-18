@@ -20,6 +20,15 @@ const notifyUpperPromise = (id: number) => {
   });
 };
 
+const getPokemonHealthPromise = (id: number, index: number) => {
+  return new Promise((resolve: (value: number) => void) => {
+    axios.get(`${url}/health/get-one/${id}/${index}`).then((response) => {
+      console.log(response.data);
+      resolve(parseInt(response.data.data));
+    });
+  });
+};
+
 enum CursorPosition {
   FIGHT = 0,
   BAG = 1,
@@ -33,6 +42,8 @@ export default class BattleMenu extends Phaser.Scene {
   private selectors: Phaser.GameObjects.Image[] = [];
   private userID!: number;
   private items!: Item[][];
+  private playerHealths: number[] = [];
+  private opponentHealths: number[] = [];
   constructor() {
     super('battle-menu');
   }
@@ -49,6 +60,12 @@ export default class BattleMenu extends Phaser.Scene {
     const increaseHealth: Item[] = items.increaseHealth;
     const cures: Item[] = items.cures;
     this.items = [pokeBalls, increaseStats, increaseHealth, cures];
+    //TODO: Get healths
+    const opponentID = this.userID === 0 ? 1 : 0;
+    for (let i = 0; i < 6; i++) {
+      this.playerHealths[i] = await getPokemonHealthPromise(this.userID, i);
+      this.opponentHealths[i] = await getPokemonHealthPromise(opponentID, i);
+    }
     // this.items = this.parseData(tmpItems);
     // this.itemsNames = await this.requestAllTexts(this.items);
     // console.log('Items ', this.items);
@@ -76,16 +93,22 @@ export default class BattleMenu extends Phaser.Scene {
     this.panels.push(pokemonOption);
     this.selectors.push(pokemonSelector);
 
-    let playerPokeBallX = 85;
-    for (let i = 0; i < 6; i++, playerPokeBallX += 28) {
+    let playerPokeBallX = screen.width * 0.0622254758;
+    for (
+      let i = 0;
+      i < 6;
+      i++, playerPokeBallX += screen.width * 0.0204978038
+    ) {
       const playerPokeBall = graphicsManager.createPlayerPokeBall(
-        playerPokeBallX
+        playerPokeBallX,
+        this.playerHealths[i]
       );
     }
-    let enemyPokeBallX = 110;
-    for (let i = 0; i < 6; i++, enemyPokeBallX += 20) {
+    let enemyPokeBallX = screen.width * 0.0805270864;
+    for (let i = 0; i < 6; i++, enemyPokeBallX += screen.width * 0.0146412884) {
       const enemyPokeBall = graphicsManager.createOpponentPokeBall(
-        enemyPokeBallX
+        enemyPokeBallX,
+        this.opponentHealths[i]
       );
     }
     //TODO: Input keyboards
@@ -167,13 +190,13 @@ export default class BattleMenu extends Phaser.Scene {
         break;
       }
       case CursorPosition.BAG: {
-        this.switchOff();
-        this.scene.add('battle-bag', BattleBag, true, {
-          sceneToRemove: 'battle-menu',
-          bPressedCount: 0,
-          userID: this.userID,
-          itemsToParse: this.items,
-        });
+        // this.switchOff();
+        // this.scene.add('battle-bag', BattleBag, true, {
+        //   sceneToRemove: 'battle-menu',
+        //   bPressedCount: 0,
+        //   userID: this.userID,
+        //   itemsToParse: this.items,
+        // });
         break;
       }
       case CursorPosition.POKEMON: {

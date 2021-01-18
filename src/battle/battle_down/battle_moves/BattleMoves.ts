@@ -53,6 +53,15 @@ const notifyOpponentChoice = (
   });
 };
 
+const getPokemonHealthPromise = (id: number, index: number) => {
+  return new Promise((resolve: (value: number) => void) => {
+    axios.get(`${url}/health/get-one/${id}/${index}`).then((response) => {
+      console.log(response.data);
+      resolve(parseInt(response.data.data));
+    });
+  });
+};
+
 export default class BattleMoves extends Phaser.Scene {
   private cursor!: number;
   private keyCode!: number;
@@ -74,6 +83,9 @@ export default class BattleMoves extends Phaser.Scene {
     this.teamMembers = await getTeamPromise(this.userID);
     this.pokemons = await getPokemons(this.teamMembers);
     this.pokemonIndex = await getPlayerPokemonIndex(this.userID);
+    for (let i = 0; i < this.pokemons.length; i++) {
+      this.pokemons[i].ps = await getPokemonHealthPromise(this.userID, i);
+    }
     this.cursor = -1;
     let indexes: number[] = [];
     for (let i = 0; i < 4; i++) {
@@ -83,7 +95,7 @@ export default class BattleMoves extends Phaser.Scene {
     const graphicsManager = new BattleMovesGraphicsManager(this);
     const bg = graphicsManager.createBackground();
     let boxX = 0;
-    let boxY = 50;
+    let boxY = screen.height * 0.0651041667;
     this.moves = this.pokemons[this.pokemonIndex].moveNames;
     for (let i = 0; i < 4; i++) {
       // Move Box and selector
@@ -106,13 +118,16 @@ export default class BattleMoves extends Phaser.Scene {
       );
 
       boxX += moveBox.width;
-      if (boxX + 20 > (this.game.config.width as number)) {
+      if (
+        boxX + screen.width * 0.0146412884 >
+        (this.game.config.width as number)
+      ) {
         boxX = 0;
-        boxY += moveBox.height + 5;
+        boxY += moveBox.height + screen.height * 0.0065104167;
       }
     }
     //Player poke balls
-    graphicsManager.createPlayerPokeBalls();
+    graphicsManager.createPlayerPokeBalls(this.pokemons);
     // Back Image
     const backImage = graphicsManager.createBackImage();
     //TODO: Input keyboards
@@ -186,15 +201,6 @@ export default class BattleMoves extends Phaser.Scene {
       },
       this
     );
-
-    sceneEvents.on(
-      'can-press-key',
-      () => {
-        this.shouldPressKey = true;
-      },
-      true
-    );
-    sceneEvents.on('manage-move-action', this.manageReply, this);
   }
 
   private async notifyUpperScreen() {
@@ -211,24 +217,6 @@ export default class BattleMoves extends Phaser.Scene {
       userID: this.userID,
       state: BackgroundState.TURN_BATTLE,
     });
-  }
-
-  private manageReply(reply: string) {
-    switch (reply) {
-      case 'FAINTED': {
-        this.switchOff();
-        this.scene.add('battle-party-menu', BattlePartyMenu, true, {
-          sceneToRemove: 'battle-moves-menu',
-          bPressedCount: 0,
-          state: BattlePartyState.SWITCH_FAINTED,
-        });
-        break;
-      }
-      default: {
-        sceneEvents.emit('can-press-key');
-        break;
-      }
-    }
   }
 
   private renderAll(): void {
@@ -281,7 +269,5 @@ export default class BattleMoves extends Phaser.Scene {
     this.input.keyboard.off('keydown-D');
     this.input.keyboard.off('keydown-Z');
     this.input.keyboard.off('keydown-B');
-    sceneEvents.off('can-press-key');
-    sceneEvents.off('manage-move-action');
   }
 }

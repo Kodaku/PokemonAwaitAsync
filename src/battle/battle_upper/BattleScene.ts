@@ -80,13 +80,15 @@ const sendBattleIntroNotificationToLower = (id: number) => {
   });
 };
 
-const sendBattleChoiceNotificationToLower = (id: number) => {
+const sendBattleChoiceNotificationToLower = (id: number, state: string) => {
   return new Promise((resolve: (value: string) => void) => {
-    axios.post(`${url}/battle/notify-choice-lower/${id}`).then((response) => {
-      console.log('Successfully sent to lower');
-      console.log(response.data);
-      resolve(response.data);
-    });
+    axios
+      .post(`${url}/battle/notify-choice-lower/${id}/${state}`)
+      .then((response) => {
+        console.log('Successfully sent to lower');
+        console.log(response.data);
+        resolve(response.data);
+      });
   });
 };
 
@@ -142,6 +144,39 @@ const sendPokemonFainted = (id: number, fainted: string) => {
   });
 };
 
+const sendPokemonHealthPromise = (
+  id: number,
+  index: number,
+  health: number
+) => {
+  return new Promise((resolve: (value: string) => void) => {
+    axios
+      .post(`${url}/health/post-one/${id}/${index}/${health}`)
+      .then((response) => {
+        console.log(response.data);
+        resolve('success');
+      });
+  });
+};
+
+const getPokemonHealthPromise = (id: number, index: number) => {
+  return new Promise((resolve: (value: number) => void) => {
+    axios.get(`${url}/health/get-one/${id}/${index}`).then((response) => {
+      console.log(response.data);
+      resolve(parseInt(response.data.data));
+    });
+  });
+};
+
+const getOpponentPokemonIndex = (id: number) => {
+  return new Promise((resolve: (value: number) => void) => {
+    axios.get(`${url}/battle/pokemon-index/${id}`).then((response) => {
+      console.log(response.data);
+      resolve(parseInt(response.data.data));
+    });
+  });
+};
+
 const hpRectMaxWidth = 69;
 
 export default class BattleScene extends Phaser.Scene {
@@ -170,6 +205,7 @@ export default class BattleScene extends Phaser.Scene {
   private turn!: number;
   private playerData!: string;
   private opponentData!: string;
+  private faintedTimeout!: number;
   constructor() {
     super('battle-scene');
   }
@@ -185,6 +221,14 @@ export default class BattleScene extends Phaser.Scene {
     this.opponentTeamMembers = await getTeamPromise(this.opponent.userID);
     this.playerPokemons = await getPokemons(this.playerTeamMembers);
     this.opponentPokemons = await getPokemons(this.opponentTeamMembers);
+    //TODO: initialize healths
+    for (let i = 0; i < this.playerPokemons.length; i++) {
+      await sendPokemonHealthPromise(
+        this.user.userID,
+        i,
+        this.playerPokemons[i].ps
+      );
+    }
     console.log('Battle Scene Pokemons: ', this.playerPokemons);
     this.readData = true;
     this.introManager = new BattleSceneIntroManager(this);
@@ -245,7 +289,9 @@ export default class BattleScene extends Phaser.Scene {
         this.healthManager.opponentHpRectVisible();
         this.healthManager.setOpponentHealth(
           this.opponentPokemons[this.opponentPokemonIndex],
-          this.battleGraphics
+          this.battleGraphics,
+          this.opponent.userID,
+          this.opponentPokemonIndex
         );
         this.pokemonManager.opponentPokemonLevelVisible();
         this.pokemonManager.opponentPokemonNameVisible();
@@ -290,13 +336,15 @@ export default class BattleScene extends Phaser.Scene {
         this.introManager.invisiblePlayerPokeBall();
         this.introManager.invisiblePlayerPartyBar();
         this.introManager.invisiblePlayerPartyBalls();
+        this.healthManager.setPlayerHealth(
+          this.playerPokemons[this.playerPokemonIndex],
+          this.battleGraphics,
+          this.user.userID,
+          this.playerPokemonIndex
+        );
         this.healthManager.playerLifeBarVisible();
         this.healthManager.playerHpRectVisible();
         this.healthManager.playerHpTextVisible();
-        this.healthManager.setPlayerHealth(
-          this.playerPokemons[this.playerPokemonIndex],
-          this.battleGraphics
-        );
         this.pokemonManager.playerPokemonLevelVisible();
         this.pokemonManager.playerPokemonNameVisible();
         this.pokemonManager.playerPokemonVisible();
@@ -327,11 +375,11 @@ export default class BattleScene extends Phaser.Scene {
       },
       this
     );
-    //TODO: Action event
+    //Action event
     sceneEvents.on('manage-action', this.manageAction, this);
     sceneEvents.on('manage-opponent-action', this.manageOpponentAction, this);
     sceneEvents.on('notify-pokemon-fainted', this.notifyPokemonFainted, this);
-    //TODO: Battle Events
+    //Battle Events
     sceneEvents.on(
       'hit-enemy',
       () => {
@@ -422,6 +470,8 @@ export default class BattleScene extends Phaser.Scene {
       this
     );
 
+    sceneEvents.on('update-pokemon-healths', this.updatePokemonHealths, this);
+
     sceneEvents.on(
       'decrease-player-health',
       () => {
@@ -429,9 +479,17 @@ export default class BattleScene extends Phaser.Scene {
           this.healthManager.decreasePlayerPokemonHealth();
           this.timeoutCount++;
           if (this.timeoutCount >= 50) {
+            //TODO: Set pokemon health with current - 50
+            this.healthManager.sendNewPlayerPokemonHealth(
+              this.user.userID,
+              this.playerPokemonIndex
+            );
+            sceneEvents.emit('update-pokemon-healths');
             this.timeoutCount = 0;
+            clearInterval(this.timeout);
             setTimeout(() => {
               let pokemonState = '';
+              let shouldSendFainted = true;
               if (this.healthManager.getPlayerPokemonCurrentHealth() <= 0) {
                 pokemonState = 'FAINTED';
                 sceneEvents.emit('new-text');
@@ -441,6 +499,15 @@ export default class BattleScene extends Phaser.Scene {
                     this.playerPokemons[this.playerPokemonIndex].name
                   } is fainted`
                 );
+                this.faintedTimeout = setTimeout(() => {
+                  for (let i = 0; i < this.playerPokemons.length; i++) {
+                    if (this.playerPokemons[i].ps > 0) {
+                      this.playerPokemonIndex = i;
+                      sceneEvents.emit('send-out-player-pokemon');
+                      break;
+                    }
+                  }
+                }, 12000);
                 this.state = BattleState.PLAYER_FAINTED;
                 // this.createSSE();
               } else {
@@ -463,14 +530,8 @@ export default class BattleScene extends Phaser.Scene {
                   this.waitZ = true;
                 }
               }
-              // if (this.playerData.split(',')[0] === 'SWITCH') {
-
-              // } else {
-              //   sceneEvents.emit('notify-pokemon-fainted', pokemonState);
-              // }
               sceneEvents.emit('notify-pokemon-fainted', pokemonState);
             }, 2000);
-            clearInterval(this.timeout);
           }
         }, 30);
       },
@@ -545,7 +606,11 @@ export default class BattleScene extends Phaser.Scene {
 
     sceneEvents.on('test-opponent-choice', this.testOpponentChoice, this);
 
-    // sceneEvents.on('get-opponent-new-pokemon', this.createSSE2, this);
+    sceneEvents.on(
+      'get-timeout-opponent-index',
+      this.getTimeoutOpponentIndex,
+      this
+    );
 
     sceneEvents.emit(
       'show-battle-text',
@@ -580,8 +645,6 @@ export default class BattleScene extends Phaser.Scene {
       console.log("YES, IT'S EMPTY");
       this.createSSE2(playerData);
     } else {
-      //TODO: This is a problem, the system should send the notification after it has ensured about the nature of the opponent's choice
-      sceneEvents.emit('send-choice-to-lower');
       sceneEvents.emit('get-opponent-choice', playerData);
     }
   }
@@ -598,8 +661,6 @@ export default class BattleScene extends Phaser.Scene {
       let data = ev2.data.split(',');
       console.log(ev2.data);
       sse2.close();
-      //TODO: Also this, is a problem
-      sceneEvents.emit('send-choice-to-lower');
       sceneEvents.emit('get-opponent-choice', playerData);
     });
   }
@@ -608,7 +669,12 @@ export default class BattleScene extends Phaser.Scene {
     const sseFainted = new EventSource(
       `${url}/battle/wait-choice-fainted/${this.opponent.userID}`
     );
+    let timeout = setTimeout(() => {
+      sseFainted.close();
+      sceneEvents.emit('get-timeout-opponent-index');
+    }, 14000);
     sseFainted.addEventListener('message', (ev2) => {
+      clearTimeout(timeout);
       let data = ev2.data.split(',');
       console.log(ev2.data);
       sseFainted.close();
@@ -751,6 +817,7 @@ export default class BattleScene extends Phaser.Scene {
         break;
       }
       case 'SWITCH-FAINTED': {
+        clearTimeout(this.faintedTimeout);
         this.playerPokemonIndex = parseInt(playerInfo[1]);
         sceneEvents.emit('send-out-player-pokemon');
         break;
@@ -778,9 +845,9 @@ export default class BattleScene extends Phaser.Scene {
         this.opponentPokemonIndex = parseInt(pokemonIndexString);
         this.state = BattleState.ENEMY_FAINTED;
         //The opponent has switched pokémon but the user has chosen to attack
-        if (this.playerData.split(',')[0] === 'ATTACK') {
-          sceneEvents.emit('notify-pokemon-fainted', 'OK');
-        }
+        // if (this.playerData.split(',')[0] === 'ATTACK') {
+        //   sceneEvents.emit('notify-pokemon-fainted', 'OK');
+        // }
         this.waitZ = false;
         break;
       }
@@ -997,8 +1064,8 @@ export default class BattleScene extends Phaser.Scene {
     await sendBattleIntroNotificationToLower(this.user.userID);
   }
 
-  private async sendChoiceNotificationToLower() {
-    await sendBattleChoiceNotificationToLower(this.user.userID);
+  private async sendChoiceNotificationToLower(state: string) {
+    await sendBattleChoiceNotificationToLower(this.user.userID, state);
   }
 
   private async resetIntroData() {
@@ -1044,19 +1111,24 @@ export default class BattleScene extends Phaser.Scene {
     if (velocity === 999 && messageType !== 'ATTACK') {
       if (this.user.userID === 0) {
         console.log('switch user 0');
-        this.turn = 1; //TODO: Then will be the turn of user 1
+        this.turn = 1; //Then will be the turn of user 1
+        sceneEvents.emit('send-choice-to-lower', 'OK'); //no worry about being fainted
         sceneEvents.emit('manage-action', playerData, opponentData);
       } else {
         this.turn = 2;
+        sceneEvents.emit('send-choice-to-lower', 'OK'); //no worry about being fainted
         sceneEvents.emit('manage-opponent-action', opponentData, playerData);
       }
       //The opponent has chosen a switch or to use an item
     } else if (velocity === 999 && messageType === 'ATTACK') {
       this.turn = 2;
+      sceneEvents.emit('notify-pokemon-fainted', 'OK'); //no worry about being fainted
       sceneEvents.emit('manage-opponent-action', opponentData, playerData);
       //I've chosen to switch or use an item therefore I'm the first
     } else if (velocity !== 999 && messageType !== 'ATTACK') {
       this.turn = 1;
+      //I'm not attacking but the opponent is attacking so I may be fainted
+      sceneEvents.emit('send-choice-to-lower', 'WARN-FAINTED');
       sceneEvents.emit('manage-action', playerData, opponentData);
       //Both have chosen to attack
     } else if (velocity !== 999 && messageType === 'ATTACK') {
@@ -1072,7 +1144,7 @@ export default class BattleScene extends Phaser.Scene {
         //Same speed
       } else if (playerPokemonSpeed === opponentPokemonSpeed) {
         if (this.user.userID === 0) {
-          this.turn = 1; //TODO: Then will be the turn of user 0
+          this.turn = 1; //Then will be the turn of user 0
           sceneEvents.emit('manage-action', playerData, opponentData);
         } else {
           this.turn = 2;
@@ -1136,5 +1208,24 @@ export default class BattleScene extends Phaser.Scene {
 
   private async notifyPokemonFainted(pokemonState: string) {
     await sendPokemonFainted(this.user.userID, pokemonState);
+  }
+
+  private async updatePokemonHealths() {
+    for (let i = 0; i < this.playerPokemons.length; i++) {
+      this.playerPokemons[i].ps = await getPokemonHealthPromise(
+        this.user.userID,
+        i
+      );
+      this.opponentPokemons[i].ps = await getPokemonHealthPromise(
+        this.opponent.userID,
+        i
+      );
+    }
+  }
+
+  private async getTimeoutOpponentIndex() {
+    this.opponentPokemonIndex = await getOpponentPokemonIndex(
+      this.opponent.userID
+    );
   }
 }

@@ -98,7 +98,7 @@ export default class BattlePartyMenuGraphicsManager {
     maxWidth: number,
     pokemon: Pokemon
   ) {
-    const maxHealth = pokemon.ps;
+    const maxHealth = pokemon.maxPs;
     this.maxHealths.push(maxHealth);
     const rectWidth = this.computeRectWidth(currentHealth, maxHealth, maxWidth);
     const hpRect = this.scene.add
@@ -110,6 +110,16 @@ export default class BattlePartyMenuGraphicsManager {
         0x00ff4a
       )
       .setOrigin(0, 0);
+    if (
+      pokemon.ps < pokemon.maxPs * (40 / 100) &&
+      pokemon.ps >= pokemon.maxPs * (15 / 100)
+    ) {
+      hpRect.fillColor = 0xf7b500;
+    } else if (pokemon.ps < pokemon.maxPs * (15 / 100)) {
+      hpRect.fillColor = 0xe71410;
+    } else {
+      hpRect.fillColor = 0x00bf37;
+    }
     return hpRect;
   }
 

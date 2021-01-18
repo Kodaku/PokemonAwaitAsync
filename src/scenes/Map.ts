@@ -40,10 +40,21 @@ export default class Map {
     }
   }
 
-  public addColliders(sprites: Phaser.Physics.Arcade.Sprite[]): void {
+  public addColliders(
+    sprites: Phaser.Physics.Arcade.Sprite[],
+    bump: Phaser.Sound.BaseSound
+  ): void {
     for (let layer of this.mapLayers) {
       for (let i = 0; i < sprites.length; i++) {
-        const collider = this.scene.physics.add.collider(sprites[i], layer);
+        const collider = this.scene.physics.add.collider(
+          sprites[i],
+          layer,
+          () => {
+            bump.play();
+          },
+          undefined,
+          this
+        );
         collider.name = layer.name;
         this.colliders.push(collider);
       }
@@ -84,5 +95,9 @@ export default class Map {
         collider.active = yes;
       }
     }
+  }
+
+  public getColliders() {
+    return this.colliders;
   }
 }

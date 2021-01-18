@@ -68,6 +68,8 @@ export default class Game extends Phaser.Scene {
   private positionInterval!: number;
   private playersPositionIntervals: number[] = [];
   private battleInterval!: number;
+  private townSound!: Phaser.Sound.BaseSound;
+  private rect!: Phaser.GameObjects.Rectangle;
   constructor() {
     super('game');
   }
@@ -79,6 +81,8 @@ export default class Game extends Phaser.Scene {
   async create(data: { user: User; sceneName: string }) {
     this.user = data.user;
     // console.log(this.user);
+    this.townSound = this.sound.add('first-town-sound');
+    const bump = this.sound.add('bump-sound');
     this.id = this.user.userID;
     this.scene.remove(data.sceneName);
     this.couple = await getOpponentPromise(this.id);
@@ -86,6 +90,12 @@ export default class Game extends Phaser.Scene {
     this.opponent = this.couple.opponent;
     this.coupleID = this.couple.coupleID;
     this.knowOpponent = this.couple.knowOpponent;
+    if (this.user.userID === 0) {
+      this.townSound.play();
+      this.townSound.on('complete', () => {
+        this.townSound.play();
+      });
+    }
     sceneEvents.on(
       'display-text',
       () => {
@@ -120,7 +130,7 @@ export default class Game extends Phaser.Scene {
 
     await this.createOpponents();
     await this.createTexts();
-    this.createAll();
+    this.createAll(bump);
     this.input.keyboard.on('keydown-S', () => {
       if (this.gameState == GameState.PLAY) {
         this.gameState = GameState.MENU;
@@ -207,8 +217,61 @@ export default class Game extends Phaser.Scene {
   }
 
   private async notifyBattleBegin() {
+    this.gameState = GameState.MENU;
+    this.townSound.stop();
+    if (this.user.userID === 0) {
+      const rivalIntro = this.sound.add('vs-rival-intro-sound');
+      const rivalMusic = this.sound.add('vs-rival-sound');
+      rivalIntro.on('complete', () => {
+        rivalMusic.play();
+      });
+      rivalMusic.on('complete', () => {
+        rivalMusic.play();
+      });
+      rivalIntro.play();
+    }
     await notifyEmptyMenu(this.user.userID, 'SWITCH');
     this.removeEventsAndClearIntervals();
+    let count = 0;
+    this.rect = this.add
+      .rectangle(
+        0,
+        0,
+        this.game.config.width as number,
+        this.game.config.height as number,
+        0x000000
+      )
+      .setOrigin(0, 0);
+    this.rect.setDepth(5);
+    let isFading = true;
+    const fadeInterval = setInterval(() => {
+      this.rect.setDepth(5);
+      if (isFading) {
+        this.rect.alpha -= 0.1;
+        if (this.rect.alpha <= 0) {
+          isFading = false;
+          count++;
+        }
+      }
+    }, 35);
+    const refadeInterval = setInterval(() => {
+      this.rect.setDepth(5);
+      if (!isFading) {
+        this.rect.alpha += 0.1;
+        if (this.rect.alpha >= 1) {
+          isFading = true;
+          count++;
+          if (count >= 4) {
+            this.beginUpperBattle();
+            clearInterval(fadeInterval);
+            clearInterval(refadeInterval);
+          }
+        }
+      }
+    }, 35);
+  }
+
+  private beginUpperBattle() {
     this.scene.add('battle-scene', BattleScene, true, {
       sceneToRemove: 'game',
       user: this.user,
@@ -220,11 +283,11 @@ export default class Game extends Phaser.Scene {
     this.user.busy = true;
   }
 
-  private async createAll() {
+  private async createAll(bump: Phaser.Sound.BaseSound) {
     this.map = new Map(this);
 
     this.map.makeMap();
-    this.map.addColliders(this.players);
+    this.map.addColliders(this.players, bump);
 
     //getting bridge and stairs level to make the player pass under them
     this.bridgeStairsLayer = this.map.findLayer('t_bridge_stairs');

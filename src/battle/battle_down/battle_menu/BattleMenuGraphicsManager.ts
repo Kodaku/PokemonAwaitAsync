@@ -25,10 +25,10 @@ export default class BattleMenuGraphicsManager {
 
   public createFightOptionSelector() {
     const fightSelector = this.scene.add
-      .image(105, 90, 'selector')
+      .image(screen.width * 0.0768667643, screen.height * 0.1171875, 'selector')
       .setOrigin(0, 0);
-    fightSelector.width = 130;
-    fightSelector.height = 100;
+    fightSelector.width = screen.width * 0.0951683748;
+    fightSelector.height = screen.height * 0.1302083333;
     fightSelector.displayWidth = fightSelector.width;
     fightSelector.displayHeight = fightSelector.height;
     fightSelector.visible = false;
@@ -37,10 +37,10 @@ export default class BattleMenuGraphicsManager {
 
   public createBagOption() {
     const bagOption = this.scene.add
-      .image(0, 220, 'bag-option')
+      .image(0, screen.height * 0.2864583333, 'bag-option')
       .setOrigin(0, 0);
-    bagOption.width = 100;
-    bagOption.height = 70;
+    bagOption.width = screen.width * 0.0732064422;
+    bagOption.height = screen.height * 0.0911458333;
     bagOption.displayWidth = bagOption.width;
     bagOption.displayHeight = bagOption.height;
     return bagOption;
@@ -48,10 +48,10 @@ export default class BattleMenuGraphicsManager {
 
   public createBagOptionSelector() {
     const bagSelector = this.scene.add
-      .image(0, 220, 'selector')
+      .image(0, screen.height * 0.2864583333, 'selector')
       .setOrigin(0, 0);
-    bagSelector.width = 100;
-    bagSelector.height = 70;
+    bagSelector.width = screen.width * 0.0732064422;
+    bagSelector.height = screen.height * 0.0911458333;
     bagSelector.displayWidth = bagSelector.width;
     bagSelector.displayHeight = bagSelector.height;
     bagSelector.visible = false;
@@ -60,10 +60,10 @@ export default class BattleMenuGraphicsManager {
 
   public createRunOption() {
     const runOption = this.scene.add
-      .image(130, 240, 'run-option')
+      .image(screen.width * 0.0951683748, screen.height * 0.3125, 'run-option')
       .setOrigin(0, 0);
-    runOption.width = 80;
-    runOption.height = 50;
+    runOption.width = screen.width * 0.0585651537;
+    runOption.height = screen.height * 0.0651041667;
     runOption.displayWidth = runOption.width;
     runOption.displayHeight = runOption.height;
     return runOption;
@@ -71,10 +71,10 @@ export default class BattleMenuGraphicsManager {
 
   public createRunOptionSelector() {
     const runSelector = this.scene.add
-      .image(130, 240, 'selector')
+      .image(screen.width * 0.0951683748, screen.height * 0.3125, 'selector')
       .setOrigin(0, 0);
-    runSelector.width = 80;
-    runSelector.height = 50;
+    runSelector.width = screen.width * 0.0585651537;
+    runSelector.height = screen.height * 0.0651041667;
     runSelector.displayWidth = runSelector.width;
     runSelector.displayHeight = runSelector.height;
     runSelector.visible = false;
@@ -83,10 +83,14 @@ export default class BattleMenuGraphicsManager {
 
   public createPokemonOption() {
     const pokemonOption = this.scene.add
-      .image(240, 220, 'pokemon-option')
+      .image(
+        screen.width * 0.1756954612,
+        screen.height * 0.2864583333,
+        'pokemon-option'
+      )
       .setOrigin(0, 0);
-    pokemonOption.width = 100;
-    pokemonOption.height = 70;
+    pokemonOption.width = screen.width * 0.0732064422;
+    pokemonOption.height = screen.height * 0.0911458333;
     pokemonOption.displayWidth = pokemonOption.width;
     pokemonOption.displayHeight = pokemonOption.height;
     return pokemonOption;
@@ -94,28 +98,44 @@ export default class BattleMenuGraphicsManager {
 
   public createPokemonOptionSelector() {
     const pokemonSelector = this.scene.add
-      .image(240, 220, 'selector')
+      .image(
+        screen.width * 0.1756954612,
+        screen.height * 0.2864583333,
+        'selector'
+      )
       .setOrigin(0, 0);
-    pokemonSelector.width = 100;
-    pokemonSelector.height = 70;
+    pokemonSelector.width = screen.width * 0.0732064422;
+    pokemonSelector.height = screen.height * 0.0911458333;
     pokemonSelector.displayWidth = pokemonSelector.width;
     pokemonSelector.displayHeight = pokemonSelector.height;
     pokemonSelector.visible = false;
     return pokemonSelector;
   }
 
-  public createPlayerPokeBall(playerPokeBallX: number) {
+  public createPlayerPokeBall(playerPokeBallX: number, ps: number) {
+    let texture = '';
+    if (ps > 0) {
+      texture = 'battle-ball-normal';
+    } else {
+      texture = 'battle-ball-fainted';
+    }
     return this.scene.add
-      .image(playerPokeBallX, 190, 'battle-ball-normal')
+      .image(playerPokeBallX, screen.height * 0.2473958333, texture)
       .setOrigin(0, 0);
   }
 
-  public createOpponentPokeBall(enemyPokeBallX: number) {
+  public createOpponentPokeBall(enemyPokeBallX: number, ps: number) {
+    let texture = '';
+    if (ps > 0) {
+      texture = 'battle-ball-normal';
+    } else {
+      texture = 'battle-ball-fainted';
+    }
     const enemyPokeBall = this.scene.add
-      .image(enemyPokeBallX, 60, 'battle-ball-normal')
+      .image(enemyPokeBallX, screen.height * 0.078125, texture)
       .setOrigin(0, 0);
-    enemyPokeBall.width = 20;
-    enemyPokeBall.height = 20;
+    enemyPokeBall.width = screen.width * 0.0146412884;
+    enemyPokeBall.height = screen.height * 0.0260416667;
     enemyPokeBall.displayWidth = enemyPokeBall.width;
     enemyPokeBall.displayHeight = enemyPokeBall.height;
     return enemyPokeBall;

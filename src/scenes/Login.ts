@@ -67,6 +67,9 @@ export default class Login extends Phaser.Scene {
     this.setProfImage();
     this.setEvents();
     sceneEvents.emit('opening-lecture', lecture, this.makeReference());
+    if (this.id === 0) {
+      this.sound.play('introduction-sound');
+    }
   }
 
   private setEvents() {
@@ -93,6 +96,7 @@ export default class Login extends Phaser.Scene {
       sceneEvents.off('display-text');
       sceneEvents.off('end-text');
       this.loginBox.turnOff();
+      this.sound.stopAll();
       this.scene.start('couples', { user: this.user });
     }
   }

@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { pokemon_types } from '~/constants/Constants';
+import { Pokemon } from '~/types/myTypes';
 
 export default class BattleMovesGraphicsManager {
   constructor(public scene: Phaser.Scene) {}
@@ -22,8 +23,8 @@ export default class BattleMovesGraphicsManager {
     const moveBox = this.scene.add
       .image(boxX, boxY, `move-${pokemon_types[indexes[index]]}`)
       .setOrigin(0, 0);
-    moveBox.width = 171;
-    moveBox.height = 60;
+    moveBox.width = screen.width * 0.1251830161;
+    moveBox.height = screen.height * 0.078125;
     moveBox.displayWidth = moveBox.width;
     moveBox.displayHeight = moveBox.height;
     return moveBox;
@@ -84,11 +85,17 @@ export default class BattleMovesGraphicsManager {
     return moveTypeImage;
   }
 
-  public createPlayerPokeBalls() {
+  public createPlayerPokeBalls(pokemons: Pokemon[]) {
     let playerPokeBallX = 85;
     for (let i = 0; i < 6; i++, playerPokeBallX += 28) {
+      let texture = '';
+      if (pokemons[i].ps > 0) {
+        texture = 'battle-ball-normal';
+      } else {
+        texture = 'battle-ball-fainted';
+      }
       const playerPokeBall = this.scene.add
-        .image(playerPokeBallX, 190, 'battle-ball-normal')
+        .image(playerPokeBallX, 190, texture)
         .setOrigin(0, 0);
       playerPokeBall.width = 25;
       playerPokeBall.height = 25;
@@ -102,7 +109,7 @@ export default class BattleMovesGraphicsManager {
       .image(235, 218, 'battle-return')
       .setOrigin(0, 0);
     backImage.width = 100;
-    backImage.height = 60;
+    backImage.height = screen.height * 0.078125;
     backImage.displayWidth = backImage.width;
     backImage.displayHeight = backImage.height;
     return backImage;

@@ -15,10 +15,14 @@ export default class BattleItemDescriptionGraphicsManager {
 
   public createItemInfo() {
     const itemInfo = this.scene.add
-      .image(5, 30, 'item-description')
+      .image(
+        screen.width * 0.0036603221,
+        screen.width * 0.0219619327,
+        'item-description'
+      )
       .setOrigin(0, 0);
-    itemInfo.width = 330;
-    itemInfo.height = 150;
+    itemInfo.width = screen.width * 0.2415812592;
+    itemInfo.height = screen.width * 0.1098096633;
     itemInfo.displayWidth = itemInfo.width;
     itemInfo.displayHeight = itemInfo.height;
     return itemInfo;
@@ -26,10 +30,14 @@ export default class BattleItemDescriptionGraphicsManager {
 
   public createUsePanel() {
     const usePanel = this.scene.add
-      .image(5, 245, 'last-item-full')
+      .image(
+        screen.width * 0.0036603221,
+        screen.width * 0.1793557833,
+        'last-item-full'
+      )
       .setOrigin(0, 0);
-    usePanel.width = 270;
-    usePanel.height = 40;
+    usePanel.width = screen.width * 0.1976573939;
+    usePanel.height = screen.width * 0.0292825769;
     usePanel.displayWidth = usePanel.width;
     usePanel.displayHeight = usePanel.height;
     return usePanel;
@@ -37,10 +45,14 @@ export default class BattleItemDescriptionGraphicsManager {
 
   public createUsePanelSelector() {
     const usePanelSelector = this.scene.add
-      .image(5, 245, 'selector')
+      .image(
+        screen.width * 0.0036603221,
+        screen.width * 0.1793557833,
+        'selector'
+      )
       .setOrigin(0, 0);
-    usePanelSelector.width = 270;
-    usePanelSelector.height = 40;
+    usePanelSelector.width = screen.width * 0.1976573939;
+    usePanelSelector.height = screen.width * 0.0292825769;
     usePanelSelector.displayWidth = usePanelSelector.width;
     usePanelSelector.displayHeight = usePanelSelector.height;
     usePanelSelector.visible = false;
@@ -50,10 +62,14 @@ export default class BattleItemDescriptionGraphicsManager {
   public createItemImage(itemIndex: string) {
     console.log(itemIndex);
     const itemImage = this.scene.add
-      .image(50, 45, `item${itemIndex}`)
+      .image(
+        screen.width * 0.0366032211,
+        screen.width * 0.032942899,
+        `item${itemIndex}`
+      )
       .setOrigin(0, 0);
-    itemImage.width = 30;
-    itemImage.height = 30;
+    itemImage.width = screen.width * 0.0219619327;
+    itemImage.height = screen.width * 0.0219619327;
     itemImage.displayWidth = itemImage.width;
     itemImage.displayHeight = itemImage.height;
     return itemImage;
@@ -61,26 +77,51 @@ export default class BattleItemDescriptionGraphicsManager {
 
   public createItemInformations(item: ItemToString, quantity: number) {
     const itemName = this.scene.add
-      .text(90, 55, item.name, { fontSize: 12, align: 'center' })
+      .text(
+        screen.width * 0.065885798,
+        screen.width * 0.0402635432,
+        item.name,
+        {
+          fontSize: screen.width * 0.0087847731,
+          align: 'center',
+        }
+      )
       .setOrigin(0, 0);
 
     const itemQuantity = this.scene.add
-      .text(220, 55, `x${quantity}`, { fontSize: 12, align: 'center' })
+      .text(
+        screen.width * 0.1610541728,
+        screen.width * 0.0402635432,
+        `x${quantity}`,
+        {
+          fontSize: screen.width * 0.0087847731,
+          align: 'center',
+        }
+      )
       .setOrigin(0, 0);
 
     const itemDescription = this.scene.add
-      .text(30, 95, item.description, {
-        fontSize: 12,
-      })
+      .text(
+        screen.width * 0.0219619327,
+        screen.width * 0.0695461201,
+        item.description,
+        {
+          fontSize: screen.width * 0.0087847731,
+        }
+      )
       .setOrigin(0, 0);
   }
 
   public createBackImage() {
     const backImage = this.scene.add
-      .image(285, 248, 'back-arrow')
+      .image(
+        screen.width * 0.2086383602,
+        screen.width * 0.1815519766,
+        'back-arrow'
+      )
       .setOrigin(0, 0);
-    backImage.width = 40;
-    backImage.height = 40;
+    backImage.width = screen.width * 0.0292825769;
+    backImage.height = screen.width * 0.0292825769;
     backImage.displayWidth = backImage.width;
     backImage.displayHeight = backImage.height;
     return backImage;

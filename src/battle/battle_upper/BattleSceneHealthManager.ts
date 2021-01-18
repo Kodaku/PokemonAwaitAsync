@@ -1,6 +1,32 @@
 import Phaser from 'phaser';
+import { url } from '~/constants/Constants';
 import { Pokemon } from '~/types/myTypes';
 import BattleSceneGraphics from './BattleSceneGraphics';
+import axios from 'axios';
+
+const getPokemonHealthPromise = (id: number, index: number) => {
+  return new Promise((resolve: (value: number) => void) => {
+    axios.get(`${url}/health/get-one/${id}/${index}`).then((response) => {
+      console.log(response.data);
+      resolve(parseInt(response.data.data));
+    });
+  });
+};
+
+const sendPokemonHealthPromise = (
+  id: number,
+  index: number,
+  health: number
+) => {
+  return new Promise((resolve: (value: string) => void) => {
+    axios
+      .post(`${url}/health/post-one/${id}/${index}/${health}`)
+      .then((response) => {
+        console.log(response.data);
+        resolve('success');
+      });
+  });
+};
 
 const hpRectMaxWidth = 69;
 
@@ -44,11 +70,17 @@ export default class BattleSceneHealthManager {
     this.opponentHpRect = battleGraphics.createOpponentHpRect(hpRectMaxWidth);
   }
 
-  public setPlayerHealth(
+  public async setPlayerHealth(
     pokemon: Pokemon,
-    battleGraphics: BattleSceneGraphics
+    battleGraphics: BattleSceneGraphics,
+    userID: number,
+    playerPokemonIndex: number
   ) {
-    this.playerPokemonCurrentHealth = pokemon.ps;
+    //TODO: Get pokemon health
+    this.playerPokemonCurrentHealth = await getPokemonHealthPromise(
+      userID,
+      playerPokemonIndex
+    );
     this.playerPokemonMaxHealth = pokemon.maxPs;
     this.computePlayerHealthColor();
     this.playerHealthText.setText(`${pokemon.ps}/${pokemon.maxPs}`);
@@ -61,11 +93,17 @@ export default class BattleSceneHealthManager {
     this.playerHpRect.displayWidth = this.playerHpRect.width;
   }
 
-  public setOpponentHealth(
+  public async setOpponentHealth(
     pokemon: Pokemon,
-    battleGraphics: BattleSceneGraphics
+    battleGraphics: BattleSceneGraphics,
+    opponentID: number,
+    opponentPokemonIndex: number
   ) {
-    this.opponentPokemonCurrentHealth = pokemon.ps;
+    //TODO: Get pokemon health
+    this.opponentPokemonCurrentHealth = await getPokemonHealthPromise(
+      opponentID,
+      opponentPokemonIndex
+    );
     this.opponentPokemonMaxHealth = pokemon.maxPs;
     this.computeOpponentHealthColor();
     const newWidth = battleGraphics.computeRectWidth(
@@ -77,11 +115,28 @@ export default class BattleSceneHealthManager {
     this.opponentHpRect.displayWidth = this.opponentHpRect.width;
   }
 
+  public async sendNewPlayerPokemonHealth(
+    userID: number,
+    playerPokemonIndex: number
+  ) {
+    await sendPokemonHealthPromise(
+      userID,
+      playerPokemonIndex,
+      this.playerPokemonCurrentHealth
+    );
+  }
+
   public getPlayerHpRect() {
     return this.playerHpRect;
   }
 
   public opponentHpRectVisible() {
+    this.opponentHpRect.width = this.computeRectWidth(
+      this.opponentPokemonCurrentHealth,
+      this.opponentPokemonMaxHealth,
+      hpRectMaxWidth
+    );
+    this.opponentHpRect.displayWidth = this.opponentHpRect.width;
     this.opponentHpRect.visible = true;
   }
 
@@ -90,6 +145,12 @@ export default class BattleSceneHealthManager {
   }
 
   public playerHpRectVisible() {
+    this.playerHpRect.width = this.computeRectWidth(
+      this.playerPokemonCurrentHealth,
+      this.playerPokemonMaxHealth,
+      hpRectMaxWidth
+    );
+    this.playerHpRect.displayWidth = this.playerHpRect.width;
     this.playerHpRect.visible = true;
   }
 
@@ -98,6 +159,9 @@ export default class BattleSceneHealthManager {
   }
 
   public playerHpTextVisible() {
+    this.playerHealthText.setText(
+      `${this.playerPokemonCurrentHealth}/${this.playerPokemonMaxHealth}`
+    );
     this.playerHealthText.visible = true;
   }
 

@@ -59,7 +59,15 @@ export default class BattleItemDescription extends Phaser.Scene {
     this.selectors.push(usePanelSelector);
     // Use Text
     const useText = this.add
-      .text(120, 255, 'USE', { fontSize: 20, align: 'center' })
+      .text(
+        screen.width * 0.0878477306,
+        screen.width * 0.1866764275256222,
+        'USE',
+        {
+          fontSize: screen.width * 0.0146412884,
+          align: 'center',
+        }
+      )
       .setOrigin(0, 0);
     // Item Image
     const itemImage = graphicsManager.createItemImage(

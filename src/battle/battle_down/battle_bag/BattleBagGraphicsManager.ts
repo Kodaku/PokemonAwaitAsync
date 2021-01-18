@@ -13,7 +13,9 @@ export default class BattleBagGraphicsManager {
   }
 
   public createHpRestore() {
-    const hpRestore = this.scene.add.image(0, 20, 'hp-restore').setOrigin(0, 0);
+    const hpRestore = this.scene.add
+      .image(0, screen.width * 0.0146412884, 'hp-restore')
+      .setOrigin(0, 0);
     hpRestore.width = (this.scene.game.config.width as number) / 2;
     hpRestore.height = (this.scene.game.config.height as number) / 3.5;
     hpRestore.displayWidth = hpRestore.width;
@@ -23,7 +25,7 @@ export default class BattleBagGraphicsManager {
 
   public createHpRestoreSelector() {
     const hpRestoreSelector = this.scene.add
-      .image(0, 20, 'selector')
+      .image(0, screen.width * 0.0146412884, 'selector')
       .setOrigin(0, 0);
     hpRestoreSelector.width = (this.scene.game.config.width as number) / 2;
     hpRestoreSelector.height = (this.scene.game.config.height as number) / 3.5;
@@ -37,7 +39,7 @@ export default class BattleBagGraphicsManager {
     const pokeBalls = this.scene.add
       .image(
         (this.scene.game.config.width as number) / 2,
-        20,
+        screen.width * 0.0146412884,
         'poke-balls-menu'
       )
       .setOrigin(0, 0);
@@ -50,7 +52,11 @@ export default class BattleBagGraphicsManager {
 
   public createPokeBallsSelector() {
     const pokeBallsSelector = this.scene.add
-      .image((this.scene.game.config.width as number) / 2, 20, 'selector')
+      .image(
+        (this.scene.game.config.width as number) / 2,
+        screen.width * 0.0146412884,
+        'selector'
+      )
       .setOrigin(0, 0);
     pokeBallsSelector.width = (this.scene.game.config.width as number) / 2;
     pokeBallsSelector.height = (this.scene.game.config.height as number) / 3.5;
@@ -121,34 +127,43 @@ export default class BattleBagGraphicsManager {
   }
 
   public createIconsText() {
-    const hpText = this.scene.add.text(45, 60, 'HP/PP\nRESTORE', {
-      fontSize: 19,
-      align: 'center',
-    });
-    const pokeBallText = this.scene.add.text(
-      40 + (this.scene.game.config.width as number) / 2,
-      60,
-      'POKE BALLS',
+    const hpText = this.scene.add.text(
+      screen.width * 0.032942899,
+      screen.width * 0.0439238653,
+      'HP/PP\nRESTORE',
       {
         fontSize: 19,
+        align: 'center',
+      }
+    );
+    const pokeBallText = this.scene.add.text(
+      screen.width * 0.0292825769 +
+        (this.scene.game.config.width as number) / 2,
+      screen.width * 0.0439238653,
+      'POKE BALLS',
+      {
+        fontSize: screen.width * 0.013909224,
         align: 'center',
       }
     );
     const restoreText = this.scene.add.text(
-      45,
-      40 + (this.scene.game.config.height as number) / 2.2,
+      screen.width * 0.032942899,
+      screen.width * 0.0292825769 +
+        (this.scene.game.config.height as number) / 2.2,
       'STATUS\nRESTORE',
       {
-        fontSize: 19,
+        fontSize: screen.width * 0.013909224,
         align: 'center',
       }
     );
     const battleItemText = this.scene.add.text(
-      25 + (this.scene.game.config.width as number) / 2,
-      40 + (this.scene.game.config.height as number) / 2.2,
+      screen.width * 0.0183016105 +
+        (this.scene.game.config.width as number) / 2,
+      screen.width * 0.0292825769 +
+        (this.scene.game.config.height as number) / 2.2,
       'BATTLE ITEMS',
       {
-        fontSize: 19,
+        fontSize: screen.width * 0.013909224,
         align: 'center',
       }
     );
@@ -156,10 +171,14 @@ export default class BattleBagGraphicsManager {
 
   public createLastItemUsed() {
     const lastItemEmpty = this.scene.add
-      .image(5, 252, 'last-item-empty')
+      .image(
+        screen.width * 0.0036603221,
+        screen.width * 0.1844802343,
+        'last-item-empty'
+      )
       .setOrigin(0, 0);
-    lastItemEmpty.width = 270;
-    lastItemEmpty.height = 30;
+    lastItemEmpty.width = screen.width * 0.1976573939;
+    lastItemEmpty.height = screen.width * 0.0219619327;
     lastItemEmpty.displayWidth = lastItemEmpty.width;
     lastItemEmpty.displayHeight = lastItemEmpty.height;
     return lastItemEmpty;
@@ -167,10 +186,14 @@ export default class BattleBagGraphicsManager {
 
   public createBackImage() {
     const backImage = this.scene.add
-      .image(285, 248, 'back-arrow')
+      .image(
+        screen.width * 0.2086383602,
+        screen.width * 0.1815519766,
+        'back-arrow'
+      )
       .setOrigin(0, 0);
-    backImage.width = 40;
-    backImage.height = 40;
+    backImage.width = screen.width * 0.0292825769;
+    backImage.height = screen.width * 0.0292825769;
     backImage.displayWidth = backImage.width;
     backImage.displayHeight = backImage.height;
     return backImage;

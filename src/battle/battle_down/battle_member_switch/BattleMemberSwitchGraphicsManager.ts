@@ -14,9 +14,11 @@ export default class BattleMemberSwitchGraphicsManager {
   }
 
   public createBigBox() {
-    const bigBox = this.scene.add.image(60, 30, 'big-box').setOrigin(0, 0);
-    bigBox.width = 230;
-    bigBox.height = 170;
+    const bigBox = this.scene.add
+      .image(screen.width * 0.0439238653, screen.height * 0.0390625, 'big-box')
+      .setOrigin(0, 0);
+    bigBox.width = screen.width * 0.168374817;
+    bigBox.height = screen.height * 0.2213541667;
     bigBox.displayWidth = bigBox.width;
     bigBox.displayHeight = bigBox.height;
     return bigBox;
@@ -24,10 +26,10 @@ export default class BattleMemberSwitchGraphicsManager {
 
   public createBigBoxSelector() {
     const bigBoxSelector = this.scene.add
-      .image(60, 30, 'selector')
+      .image(screen.width * 0.0439238653, screen.height * 0.0390625, 'selector')
       .setOrigin(0, 0);
-    bigBoxSelector.width = 230;
-    bigBoxSelector.height = 170;
+    bigBoxSelector.width = screen.width * 0.168374817;
+    bigBoxSelector.height = screen.height * 0.2213541667;
     bigBoxSelector.displayWidth = bigBoxSelector.width;
     bigBoxSelector.displayHeight = bigBoxSelector.height;
     bigBoxSelector.visible = false;
@@ -35,9 +37,11 @@ export default class BattleMemberSwitchGraphicsManager {
   }
 
   public createPokemonSprite() {
-    const pokemonSprite = this.scene.add.sprite(155, 90, '').setOrigin(0, 0);
-    pokemonSprite.width = 30;
-    pokemonSprite.height = 30;
+    const pokemonSprite = this.scene.add
+      .sprite(screen.width * 0.1134699854, screen.height * 0.1171875, '')
+      .setOrigin(0, 0);
+    pokemonSprite.width = screen.width * 0.0219619327;
+    pokemonSprite.height = screen.height * 0.0390625;
     pokemonSprite.displayWidth = pokemonSprite.width;
     pokemonSprite.displayHeight = pokemonSprite.height;
     return pokemonSprite;
@@ -45,7 +49,15 @@ export default class BattleMemberSwitchGraphicsManager {
 
   public createPokemonName(pokemon: Pokemon) {
     this.scene.add
-      .text(115, 55, `${pokemon.name}`, { fontSize: 14, align: 'center' })
+      .text(
+        screen.width * 0.0841874085,
+        screen.height * 0.0716145833,
+        `${pokemon.name}`,
+        {
+          fontSize: screen.width * 0.0102489019,
+          align: 'center',
+        }
+      )
       .setOrigin(0, 0);
   }
 
@@ -57,16 +69,23 @@ export default class BattleMemberSwitchGraphicsManager {
       text = 'SWITCH';
     }
     this.scene.add
-      .text(115, 150, text, { fontSize: 18, align: 'center' })
+      .text(screen.width * 0.0841874085, screen.height * 0.1953125, text, {
+        fontSize: screen.width * 0.0131771596,
+        align: 'center',
+      })
       .setOrigin(0, 0);
   }
 
   public createBackImage() {
     const backImage = this.scene.add
-      .image(285, 248, 'back-arrow')
+      .image(
+        screen.width * 0.2086383602,
+        screen.height * 0.3229166667,
+        'back-arrow'
+      )
       .setOrigin(0, 0);
-    backImage.width = 40;
-    backImage.height = 40;
+    backImage.width = screen.width * 0.0292825769;
+    backImage.height = screen.height * 0.0520833333;
     backImage.displayWidth = backImage.width;
     backImage.displayHeight = backImage.height;
     return backImage;
