@@ -127,7 +127,7 @@ export default class Login extends Phaser.Scene {
   private makeReference(): Reference {
     return {
       x: this.profImage.x,
-      y: this.profImage.y - 150,
+      y: this.profImage.y - (150 / 768) * screen.height,
       width: this.profImage.width,
       height: this.profImage.height,
       referenceName: 'Prof',

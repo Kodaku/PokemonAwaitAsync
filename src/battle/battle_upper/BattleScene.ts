@@ -8,8 +8,9 @@ import BattleSceneGraphics from './BattleSceneGraphics';
 import BattleSceneHealthManager from './BattleSceneHealthManager';
 import BattleSceneIntroManager from './BattleSceneIntroManager';
 import BattleScenePokemonManager from './BattleScenePokemonManager';
-import { Pokemon, TeamMember, User } from '~/types/myTypes';
+import { Move, Pokemon, TeamMember, User } from '~/types/myTypes';
 import { getPokemons, getTeamPromise } from '~/promises/pokemonPromises';
+import { getMove } from '~/promises/movesPromises';
 
 enum BattleState {
   BATTLE_INTRO,
@@ -206,6 +207,16 @@ export default class BattleScene extends Phaser.Scene {
   private playerData!: string;
   private opponentData!: string;
   private faintedTimeout!: number;
+  private playerToOpponentDamage!: number;
+  private opponentToPlayerDamage!: number;
+  private effectiveType!: string;
+  private normalDamageSound!: Phaser.Sound.BaseSound;
+  private notVeryDamageSound!: Phaser.Sound.BaseSound;
+  private superDamageSound!: Phaser.Sound.BaseSound;
+  private victoryTrainerIntro!: Phaser.Sound.BaseSound;
+  private victoryTrainer!: Phaser.Sound.BaseSound;
+  private playerPokemonNumber!: number;
+  private opponentPokemonNumber!: number;
   constructor() {
     super('battle-scene');
   }
@@ -221,6 +232,8 @@ export default class BattleScene extends Phaser.Scene {
     this.opponentTeamMembers = await getTeamPromise(this.opponent.userID);
     this.playerPokemons = await getPokemons(this.playerTeamMembers);
     this.opponentPokemons = await getPokemons(this.opponentTeamMembers);
+    this.playerPokemonNumber = this.playerPokemons.length;
+    this.opponentPokemonNumber = this.opponentPokemons.length;
     //TODO: initialize healths
     for (let i = 0; i < this.playerPokemons.length; i++) {
       await sendPokemonHealthPromise(
@@ -242,7 +255,13 @@ export default class BattleScene extends Phaser.Scene {
     //Message Dialogue
     this.battleMessage = new MessageBoxScene(this);
     this.battleMessage.createBattleMessage();
-
+    this.normalDamageSound = this.sound.add("normal-damage-sound");
+    this.notVeryDamageSound = this.sound.add("not-very-damage-sound");
+    this.superDamageSound = this.sound.add("super-damage-sound");
+    this.victoryTrainerIntro = this.sound.add("victory-trainer-intro-sound");
+    this.victoryTrainer = this.sound.add("victory-trainer-sound");
+    this.victoryTrainerIntro.on("complete", () => {this.victoryTrainer.play();});
+    this.victoryTrainer.on("complete", () => {this.victoryTrainer.play();});
     this.battleGraphics = new BattleSceneGraphics(this);
     this.introManager.createIntroGraphics(
       this.battleGraphics,
@@ -299,6 +318,8 @@ export default class BattleScene extends Phaser.Scene {
         this.pokemonManager.opponentPokemonResetAlpha();
         this.pokemonManager.initializeOpponentPosition();
         this.pokemonManager.playOpponentPokemon();
+        const pokemonCry = this.sound.add(`cry${this.opponentPokemons[this.opponentPokemonIndex].pokedexNumber}-sound`);
+        pokemonCry.play();
         if (this.state !== BattleState.BATTLE_START) {
           if (this.state === BattleState.SEND_OUT_OPPONENT_POKEMON) {
             if (this.turn === 2) {
@@ -350,6 +371,8 @@ export default class BattleScene extends Phaser.Scene {
         this.pokemonManager.playerPokemonVisible();
         this.pokemonManager.playerPokemonResetAlpha();
         this.pokemonManager.playPlayerPokemon();
+        const pokemonCry = this.sound.add(`cry${this.playerPokemons[this.playerPokemonIndex].pokedexNumber}-sound`);
+        pokemonCry.play();
         if (this.state === BattleState.SEND_OUT_PLAYER_POKEMON) {
           if (this.turn === 1) {
             sceneEvents.emit(
@@ -404,19 +427,32 @@ export default class BattleScene extends Phaser.Scene {
         this.timeout = setInterval(() => {
           this.healthManager.decreaseOpponentPokemonHealth();
           this.timeoutCount++;
-          if (this.timeoutCount >= 50) {
+          if (this.timeoutCount >= this.playerToOpponentDamage) {
             this.timeoutCount = 0;
             setTimeout(() => {
               if (this.healthManager.getOpponentPokemonCurrentHealth() <= 0) {
-                sceneEvents.emit('new-text');
-                sceneEvents.emit(
-                  'show-battle-text',
-                  `The enemy ${
-                    this.opponentPokemons[this.opponentPokemonIndex].name
-                  } is fainted`
-                );
-                // sceneEvents.emit('notify-lower-screen', 'OK');
-                this.state = BattleState.ENEMY_FAINTED_BATTLE;
+                this.opponentPokemonNumber--;
+                if(this.opponentPokemonNumber !== 0){
+                  sceneEvents.emit('new-text');
+                  sceneEvents.emit(
+                    'show-battle-text',
+                    `The enemy ${
+                      this.opponentPokemons[this.opponentPokemonIndex].name
+                    } is fainted`
+                  );
+                  const pokemonCry = this.sound.add(`cry${this.opponentPokemons[this.opponentPokemonIndex].pokedexNumber}-sound`);
+                  pokemonCry.play();
+                  // sceneEvents.emit('notify-lower-screen', 'OK');
+                  this.state = BattleState.ENEMY_FAINTED_BATTLE;
+                }
+                else{
+                  setTimeout(() => {
+                    sceneEvents.emit("new-text");
+                    this.sound.stopAll();
+                    this.victoryTrainerIntro.play();
+                    sceneEvents.emit("show-battle-text", `You have beaten ${this.opponent.userName} pokemon trainer! Thanks for playing!!`);
+                  }, 1500);
+                }
               } else {
                 sceneEvents.emit('new-text');
                 sceneEvents.emit(
@@ -478,7 +514,7 @@ export default class BattleScene extends Phaser.Scene {
         this.timeout = setInterval(() => {
           this.healthManager.decreasePlayerPokemonHealth();
           this.timeoutCount++;
-          if (this.timeoutCount >= 50) {
+          if (this.timeoutCount >= this.opponentToPlayerDamage) {
             //TODO: Set pokemon health with current - 50
             this.healthManager.sendNewPlayerPokemonHealth(
               this.user.userID,
@@ -491,24 +527,36 @@ export default class BattleScene extends Phaser.Scene {
               let pokemonState = '';
               let shouldSendFainted = true;
               if (this.healthManager.getPlayerPokemonCurrentHealth() <= 0) {
-                pokemonState = 'FAINTED';
-                sceneEvents.emit('new-text');
-                sceneEvents.emit(
-                  'show-battle-text',
-                  `${
-                    this.playerPokemons[this.playerPokemonIndex].name
-                  } is fainted`
-                );
-                this.faintedTimeout = setTimeout(() => {
-                  for (let i = 0; i < this.playerPokemons.length; i++) {
-                    if (this.playerPokemons[i].ps > 0) {
-                      this.playerPokemonIndex = i;
-                      sceneEvents.emit('send-out-player-pokemon');
-                      break;
+                this.playerPokemonNumber--;
+                if(this.playerPokemonNumber !== 0){
+                  pokemonState = 'FAINTED';
+                  sceneEvents.emit('new-text');
+                  sceneEvents.emit(
+                    'show-battle-text',
+                    `${
+                      this.playerPokemons[this.playerPokemonIndex].name
+                    } is fainted`
+                  );
+                  const pokemonCry = this.sound.add(`cry${this.playerPokemons[this.playerPokemonIndex].pokedexNumber}-sound`);
+                  pokemonCry.play();
+                  this.faintedTimeout = setTimeout(() => {
+                    for (let i = 0; i < this.playerPokemons.length; i++) {
+                      if (this.playerPokemons[i].ps > 0) {
+                        this.playerPokemonIndex = i;
+                        sceneEvents.emit('send-out-player-pokemon');
+                        break;
+                      }
                     }
-                  }
-                }, 12000);
-                this.state = BattleState.PLAYER_FAINTED;
+                  }, 12000);
+                  this.state = BattleState.PLAYER_FAINTED;
+                }
+                else{
+                  setTimeout(() => {
+                    sceneEvents.emit("new-text");
+                    this.sound.stopAll();
+                    sceneEvents.emit("show-battle-text", `You have lost against ${this.opponent.userName} pokemon trainer...Thanks for playing!!`);
+                  }, 1500);
+                }
                 // this.createSSE();
               } else {
                 pokemonState = 'OK';
@@ -672,7 +720,7 @@ export default class BattleScene extends Phaser.Scene {
     let timeout = setTimeout(() => {
       sseFainted.close();
       sceneEvents.emit('get-timeout-opponent-index');
-    }, 14000);
+    }, 16000);
     sseFainted.addEventListener('message', (ev2) => {
       clearTimeout(timeout);
       let data = ev2.data.split(',');
@@ -685,7 +733,7 @@ export default class BattleScene extends Phaser.Scene {
     });
   }
 
-  private manageAction(playerData: string, opponentData: string) {
+  private async manageAction(playerData: string, opponentData: string) {
     let playerInfo: string[] = playerData.split(',');
     // let opponentInfo: string[] = opponentData.split(',');
     console.log('Player Info: ', playerInfo);
@@ -787,12 +835,13 @@ export default class BattleScene extends Phaser.Scene {
       }
       case 'ATTACK': {
         this.state = BattleState.PLAYER_ATTACK_FRONT;
+        //TODO: Get the moves detail and compute the damage
+        const move: Move = await getMove(playerInfo[1]);
+        this.playerToOpponentDamage = this.computePlayerDamage(move);
         sceneEvents.emit('new-text');
         sceneEvents.emit(
           'show-battle-text',
-          `${this.playerPokemons[this.playerPokemonIndex].name} uses ${
-            playerInfo[1]
-          }`
+          `${this.playerPokemons[this.playerPokemonIndex].name} uses ${move.name}!`
         );
         // if (this.turn === 1) {
         //   sceneEvents.emit('manage-opponent-action', opponentData, playerData);
@@ -830,7 +879,7 @@ export default class BattleScene extends Phaser.Scene {
     }
   }
 
-  private manageOpponentAction(opponentData: string, playerData: string) {
+  private async manageOpponentAction(opponentData: string, playerData: string) {
     let [messageType] = opponentData.split(',');
     switch (messageType) {
       case 'SWITCH': {
@@ -857,10 +906,12 @@ export default class BattleScene extends Phaser.Scene {
       case 'ATTACK': {
         let [a, b, moveName] = opponentData.split(',');
         this.state = BattleState.ENEMY_ATTACK_FRONT;
+        const opponentMove: Move = await getMove(moveName);
+        this.opponentToPlayerDamage = this.opponentDamage(opponentMove);
         sceneEvents.emit('new-text');
         sceneEvents.emit(
           'show-battle-text',
-          `${
+          `The enemy ${
             this.opponentPokemons[this.opponentPokemonIndex].name
           } uses ${moveName}`
         );
@@ -946,6 +997,19 @@ export default class BattleScene extends Phaser.Scene {
           this.pokemonManager.moveBackwardPlayerPokemon();
           if (this.pokemonManager.checkPlayerPokemonBackX()) {
             this.state = BattleState.HIT_ENEMY;
+            setTimeout(() => {
+              if(this.effectiveType === "NORMAL"){
+                this.normalDamageSound.play();
+              }
+              else if(this.effectiveType === "NOT"){
+                //TODO: Play not effective sound
+                this.notVeryDamageSound.play();
+              }
+              else if(this.effectiveType === "SUPER"){
+                //Play supereffective sound
+                this.superDamageSound.play();
+              }
+            },1000);
             sceneEvents.emit('hit-enemy');
           }
           break;
@@ -1227,5 +1291,133 @@ export default class BattleScene extends Phaser.Scene {
     this.opponentPokemonIndex = await getOpponentPokemonIndex(
       this.opponent.userID
     );
+    sceneEvents.emit('send-out-enemy-pokemon');
+  }
+
+  private computePlayerDamage(move: Move): number{
+    const opponentPokemon = this.opponentPokemons[this.opponentPokemonIndex];
+    const playerPokemon = this.playerPokemons[this.playerPokemonIndex];
+    const weaknesses = opponentPokemon.weaknesses;
+    const resistances = opponentPokemon.resistances;
+    const immunities = opponentPokemon.immunities;
+    let findDamage = false;
+    let damage = 0;
+    let modifier = 0;
+    // const random = Math.random() * (1 - 0.85) + 0.85;
+    let stab = this.computeStab(move.type, playerPokemon.type);
+    let effectiveness = 0;
+    for(let i = 0; i < weaknesses.length; i++){
+      if(move.type === weaknesses[i]){
+        this.effectiveType = "SUPER";
+        effectiveness = 2;
+        findDamage = true;
+        break;
+      } 
+    }
+    if(!findDamage){
+      for(let i = 0; i < resistances.length; i++){
+        if(move.type === resistances[i]){
+          this.effectiveType = "NOT";
+          effectiveness = 0.5;
+          findDamage = true;
+          break;
+        }
+      }
+    }
+    if(!findDamage){
+      for(let i = 0; i < immunities.length; i++){
+        if(move.type === immunities[i]){
+          this.effectiveType = "IMMUNE";
+          effectiveness = 0;
+          findDamage = true;
+          break;
+        }
+      }
+    }
+    if(!findDamage){
+      this.effectiveType = "NORMAL";
+      effectiveness = 1;
+    }
+    modifier = stab * effectiveness;
+    let a = ((2 * 50) / 5) + 2;
+    let b = 0;
+    if(move.type === "SPECIAL"){
+      b = (a * move.power * (playerPokemon.specialAttack / opponentPokemon.specialDefense)) / 50;
+    }
+    else{
+      b = (a * move.power * (playerPokemon.attack / opponentPokemon.defense)) / 50;
+    }
+    let c = b + 2;
+    damage = c * modifier;
+    console.log("Player damage: ", damage);
+    return damage;
+  }
+
+  private opponentDamage(move: Move): number{
+    const opponentPokemon = this.opponentPokemons[this.opponentPokemonIndex];
+    const playerPokemon = this.playerPokemons[this.playerPokemonIndex];
+    const weaknesses = playerPokemon.weaknesses;
+    const resistances = playerPokemon.resistances;
+    const immunities = playerPokemon.immunities;
+    let findDamage = false;
+    let damage = 0;
+    let modifier = 0;
+    // const random = Math.random() * (1 - 0.85) + 0.85;
+    let stab = this.computeStab(move.type, opponentPokemon.type);
+    let effectiveness = 0;
+    for(let i = 0; i < weaknesses.length; i++){
+      if(move.type === weaknesses[i]){
+        this.effectiveType = "SUPER";
+        effectiveness = 2;
+        findDamage = true;
+        break;
+      } 
+    }
+    if(!findDamage){
+      for(let i = 0; i < resistances.length; i++){
+        if(move.type === resistances[i]){
+          this.effectiveType = "NOT";
+          effectiveness = 0.5;
+          findDamage = true;
+          break;
+        }
+      }
+    }
+    if(!findDamage){
+      for(let i = 0; i < immunities.length; i++){
+        if(move.type === immunities[i]){
+          this.effectiveType = "IMMUNE";
+          effectiveness = 0;
+          findDamage = true;
+          break;
+        }
+      }
+    }
+    if(!findDamage){
+      this.effectiveType = "NORMAL";
+      effectiveness = 1;
+    }
+    modifier = stab * effectiveness;
+    let a = ((2 * 50) / 5) + 2;
+    let b = 0;
+    if(move.type === "SPECIAL"){
+      b = (a * move.power * (opponentPokemon.specialAttack / playerPokemon.specialDefense)) / 50;
+    }
+    else{
+      b = (a * move.power * (opponentPokemon.attack / playerPokemon.defense)) / 50;
+    }
+    let c = b + 2;
+    damage = c * modifier;
+    console.log("Opponent damage: ", damage);
+    return damage;
+  }
+
+  private computeStab(moveType: string, pokemonType: string[]){
+   for(let i = 0; i < pokemonType.length; i++){
+     if(pokemonType[i] === moveType){
+       return 1.5;
+     }
+   }
+   return 1;
   }
 }

@@ -7,11 +7,13 @@ import BattlePartyMenu, {
   BattlePartyState,
 } from '../battle_party_menu/BattlePartyMenu';
 import BattleMovesGraphicsManager from './BattleMovesGraphicsManager';
-import { Pokemon, TeamMember } from '~/types/myTypes';
+import { Move, Pokemon, TeamMember } from '~/types/myTypes';
 import { getPokemons, getTeamPromise } from '~/promises/pokemonPromises';
 import BattleBackground, {
   BackgroundState,
 } from '../battle_background/BattleBackground';
+import menu from '~/menu';
+import { getMove } from '~/promises/movesPromises';
 
 const notifyUpperAttackPromise = (attackName: string, id: number) => {
   return new Promise((resolve: (value: string) => void) => {
@@ -73,6 +75,7 @@ export default class BattleMoves extends Phaser.Scene {
   private userID!: number;
   private pokemonIndex!: number;
   private moves: string[] = [];
+  private pokemonMoves: Move[] = [];
   constructor() {
     super('battle-moves-menu');
   }
@@ -88,18 +91,25 @@ export default class BattleMoves extends Phaser.Scene {
     }
     this.cursor = -1;
     let indexes: number[] = [];
-    for (let i = 0; i < 4; i++) {
-      const index = Math.floor(Math.random() * pokemon_types.length);
-      indexes.push(index);
-    }
+    // for (let i = 0; i < 4; i++) {
+    //   const index = Math.floor(Math.random() * pokemon_types.length);
+    //   indexes.push(index);
+    // }
+    const menuSelectSound = this.sound.add("menu-select-sound");
+    const menuChooseSound = this.sound.add("menu-choose-sound");
+    const menuCancel = this.sound.add("cancel-sound");
     const graphicsManager = new BattleMovesGraphicsManager(this);
     const bg = graphicsManager.createBackground();
     let boxX = 0;
     let boxY = screen.height * 0.0651041667;
     this.moves = this.pokemons[this.pokemonIndex].moveNames;
+    for(let i = 0; i < this.moves.length; i++){
+      this.pokemonMoves[i] = await getMove(this.moves[i]);
+    }
+    //TODO: Get moves and tune their pp and type, also when a move is selected decrease its pp
     for (let i = 0; i < 4; i++) {
       // Move Box and selector
-      const moveBox = graphicsManager.createMoveBox(boxX, boxY, indexes, i);
+      const moveBox = graphicsManager.createMoveBox(boxX, boxY, this.pokemonMoves[i].type);
       const moveBoxSelector = graphicsManager.createMoveBoxSelector(
         boxX,
         boxY,
@@ -108,13 +118,12 @@ export default class BattleMoves extends Phaser.Scene {
       this.panels.push(moveBox);
       this.selectors.push(moveBoxSelector);
       // Move Text
-      graphicsManager.createMoveText(boxX, boxY, this.moves[i]);
+      graphicsManager.createMoveText(boxX, boxY, this.moves[i], this.pokemonMoves[i].pp, this.pokemonMoves[i].pp);
       // Move type image
       const moveTypeImage = graphicsManager.createMoveTypeImage(
         boxX,
         boxY,
-        indexes,
-        i
+        this.pokemonMoves[i].type
       );
 
       boxX += moveBox.width;
@@ -135,6 +144,7 @@ export default class BattleMoves extends Phaser.Scene {
       'keydown-R',
       () => {
         if (this.shouldPressKey) {
+          menuSelectSound.play();
           this.keyCode = Phaser.Input.Keyboard.KeyCodes.R;
           this.updateCursor();
           this.renderAll();
@@ -146,6 +156,7 @@ export default class BattleMoves extends Phaser.Scene {
       'keydown-L',
       () => {
         if (this.shouldPressKey) {
+          menuSelectSound.play();
           this.keyCode = Phaser.Input.Keyboard.KeyCodes.L;
           this.updateCursor();
           this.renderAll();
@@ -157,6 +168,7 @@ export default class BattleMoves extends Phaser.Scene {
       'keydown-U',
       () => {
         if (this.shouldPressKey) {
+          menuSelectSound.play();
           this.keyCode = Phaser.Input.Keyboard.KeyCodes.U;
           this.updateCursor();
           this.renderAll();
@@ -168,6 +180,7 @@ export default class BattleMoves extends Phaser.Scene {
       'keydown-D',
       () => {
         if (this.shouldPressKey) {
+          menuSelectSound.play();
           this.keyCode = Phaser.Input.Keyboard.KeyCodes.D;
           this.updateCursor();
           this.renderAll();
@@ -180,6 +193,7 @@ export default class BattleMoves extends Phaser.Scene {
       () => {
         if (this.cursor !== -1) {
           if (this.shouldPressKey) {
+            menuChooseSound.play();
             this.shouldPressKey = false;
             this.notifyUpperScreen();
           }
@@ -193,6 +207,7 @@ export default class BattleMoves extends Phaser.Scene {
         if (this.shouldPressKey) {
           this.keyCode = Phaser.Input.Keyboard.KeyCodes.B;
           this.switchOff();
+          menuCancel.play();
           this.scene.add('battle-menu', BattleMenu, true, {
             sceneToRemove: 'battle-moves-menu',
             userID: this.userID,

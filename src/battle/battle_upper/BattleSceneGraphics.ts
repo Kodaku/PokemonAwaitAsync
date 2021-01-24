@@ -18,22 +18,22 @@ export default class BattleSceneGraphics {
 
   public createPlayerBase(bgNumber: number, playerBaseStartX: number) {
     const playerBase = this.scene.add
-      .image(playerBaseStartX, 170, `player-base${bgNumber}`)
+      .image(playerBaseStartX, screen.height * 0.2213541667, `player-base${bgNumber}`)
       .setOrigin(0, 0);
-    playerBase.width = 190;
-    playerBase.height = 60;
+    playerBase.width = screen.width * 0.1390922401;
+    playerBase.height = screen.height * 0.078125;
     playerBase.displayWidth = playerBase.width;
     playerBase.displayHeight = playerBase.height;
     return playerBase;
   }
 
   public createOpponentBase(bgNumber: number, opponentBaseStartX: number) {
-    const enemyBaseY = 85;
+    const enemyBaseY = screen.height * 0.1106770833;
     const opponentBase = this.scene.add
       .image(opponentBaseStartX, enemyBaseY, `enemy-base${bgNumber}`)
       .setOrigin(0, 0);
-    opponentBase.width = 190;
-    opponentBase.height = 60;
+    opponentBase.width = screen.width * 0.1390922401;
+    opponentBase.height = screen.height * 0.078125;
     opponentBase.displayWidth = opponentBase.width;
     opponentBase.displayHeight = opponentBase.height;
     return opponentBase;
@@ -41,10 +41,10 @@ export default class BattleSceneGraphics {
 
   public createPlayerImage(playerStartX: number, playerSprite: string) {
     const playerImage = this.scene.add
-      .image(playerStartX, 88, `throw-ball-${playerSprite}`)
+      .image(playerStartX, screen.height * 0.1145833333, `throw-ball-${playerSprite}`)
       .setOrigin(0, 0);
-    playerImage.width = 50;
-    playerImage.height = 125;
+    playerImage.width = screen.width * 0.036603221;
+    playerImage.height = screen.height * 0.1627604167;
     playerImage.displayWidth = playerImage.width;
     playerImage.displayHeight = playerImage.height;
     playerImage.visible = true;
@@ -55,8 +55,8 @@ export default class BattleSceneGraphics {
     const opponentImage = this.scene.add
       .image(opponentStartX, 0, `vs-${opponentSprite}`)
       .setOrigin(0, 0);
-    opponentImage.width = 50;
-    opponentImage.height = 125;
+    opponentImage.width = screen.width * 0.036603221;
+    opponentImage.height = screen.height * 0.1627604167;
     opponentImage.displayWidth = opponentImage.width;
     opponentImage.displayHeight = opponentImage.height;
     opponentImage.visible = true;
@@ -65,11 +65,11 @@ export default class BattleSceneGraphics {
 
   public createPlayerPartyBar() {
     const playerPartyBar = this.scene.add
-      .image(180, 170, 'battle-party-bar')
+      .image(screen.width * 0.1317715959, screen.height * 0.2213541667, 'battle-party-bar')
       .setOrigin(0, 0)
       .setFlip(true, false);
-    playerPartyBar.width = 180;
-    playerPartyBar.height = 5;
+    playerPartyBar.width = screen.width * 0.1317715959;
+    playerPartyBar.height = screen.height * 0.0065104167;
     playerPartyBar.displayWidth = playerPartyBar.width;
     playerPartyBar.displayHeight = playerPartyBar.height;
     playerPartyBar.visible = false;
@@ -78,10 +78,10 @@ export default class BattleSceneGraphics {
 
   public createOpponentPartyBar() {
     const opponentPartyBar = this.scene.add
-      .image(0, 50, 'battle-party-bar')
+      .image(0, screen.height * 0.0651041667, 'battle-party-bar')
       .setOrigin(0, 0);
-    opponentPartyBar.width = 180;
-    opponentPartyBar.height = 5;
+    opponentPartyBar.width = screen.width * 0.1317715959;
+    opponentPartyBar.height = screen.height * 0.0065104167;
     opponentPartyBar.displayWidth = opponentPartyBar.width;
     opponentPartyBar.displayHeight = opponentPartyBar.height;
     opponentPartyBar.visible = false;
@@ -92,12 +92,12 @@ export default class BattleSceneGraphics {
     let ballX = playerStartX;
     let playerPartyBallStartX: number[] = [];
     let playerPartyBalls: Phaser.GameObjects.Image[] = [];
-    for (let i = 0; i < 6; i++, ballX += 20) {
+    for (let i = 0; i < 6; i++, ballX += screen.width * 0.0146412884) {
       const partyBall = this.scene.add
-        .image(ballX, 150, 'ball-normal')
+        .image(ballX, screen.height * 0.1953125, 'ball-normal')
         .setOrigin(0, 0);
-      partyBall.width = 20;
-      partyBall.height = 20;
+      partyBall.width = screen.width * 0.0146412884;
+      partyBall.height = screen.height * 0.026416667;
       partyBall.displayWidth = partyBall.width;
       partyBall.displayHeight = partyBall.height;
       partyBall.visible = false;
@@ -114,12 +114,12 @@ export default class BattleSceneGraphics {
     let ballX = opponentStartX;
     let opponentPartyBallStartX: number[] = [];
     let opponentPartyBalls: Phaser.GameObjects.Image[] = [];
-    for (let i = 0; i < 6; i++, ballX -= 20) {
+    for (let i = 0; i < 6; i++, ballX -= screen.width * 0.0146412884) {
       const partyBall = this.scene.add
-        .image(ballX, 30, 'ball-normal')
+        .image(ballX, screen.height * 0.0390625, 'ball-normal')
         .setOrigin(0, 0);
-      partyBall.width = 20;
-      partyBall.height = 20;
+      partyBall.width = screen.width * 0.0146412884;
+      partyBall.height = screen.height * 0.026416667;
       partyBall.displayWidth = partyBall.width;
       partyBall.displayHeight = partyBall.height;
       partyBall.visible = false;
@@ -133,7 +133,11 @@ export default class BattleSceneGraphics {
   }
 
   public createPlayerPokeBall() {
-    const playerPokeBall = this.scene.add.sprite(90, 150, 'player-ball');
+    const playerPokeBall = this.scene.add.sprite(screen.width * 0.065885798, screen.height * 0.1953125, 'player-ball');
+    playerPokeBall.width = screen.width * 0.0292825769;
+    playerPokeBall.height = screen.height * 0.0520833333;
+    playerPokeBall.displayWidth = playerPokeBall.width;
+    playerPokeBall.displayHeight = playerPokeBall.height;
     playerPokeBall.on(
       Phaser.Animations.Events.SPRITE_ANIMATION_KEY_COMPLETE +
         'poke-ball-anim-0',
@@ -155,7 +159,11 @@ export default class BattleSceneGraphics {
   }
 
   public createOpponentPokeBall() {
-    const enemyPokeBall = this.scene.add.sprite(250, 80, 'enemy-ball');
+    const enemyPokeBall = this.scene.add.sprite(screen.width * 0.1830161054, screen.height * 0.1041666667, 'enemy-ball');
+    enemyPokeBall.width = screen.width * 0.0292825769;
+    enemyPokeBall.height = screen.height * 0.0520833333;
+    enemyPokeBall.displayWidth = enemyPokeBall.width;
+    enemyPokeBall.displayHeight = enemyPokeBall.height;
     enemyPokeBall.on(
       Phaser.Animations.Events.SPRITE_ANIMATION_KEY_COMPLETE +
         'poke-ball-anim-0',
@@ -177,9 +185,9 @@ export default class BattleSceneGraphics {
   }
 
   public createPlayerLifeBar() {
-    const playerLifeBar = this.scene.add.image(255, 165, 'player-life-bar');
-    playerLifeBar.width = 170;
-    playerLifeBar.height = 40;
+    const playerLifeBar = this.scene.add.image(screen.width * 0.1866764275, screen.height * 0.21484375, 'player-life-bar');
+    playerLifeBar.width = screen.width * 0.1244509517;
+    playerLifeBar.height = screen.height * 0.0520833333;
     playerLifeBar.displayWidth = playerLifeBar.width;
     playerLifeBar.displayHeight = playerLifeBar.height;
     playerLifeBar.visible = false;
@@ -187,9 +195,9 @@ export default class BattleSceneGraphics {
   }
 
   public createOpponentLifeBar() {
-    const enemyLifeBar = this.scene.add.image(85, 50, 'enemy-life-bar');
-    enemyLifeBar.width = 170;
-    enemyLifeBar.height = 30;
+    const enemyLifeBar = this.scene.add.image(screen.width * 0.0622254758, screen.height * 0.0651041667, 'enemy-life-bar');
+    enemyLifeBar.width = screen.width * 0.1244509517;
+    enemyLifeBar.height = screen.height * 0.0390625;
     enemyLifeBar.displayWidth = enemyLifeBar.width;
     enemyLifeBar.displayHeight = enemyLifeBar.height;
     enemyLifeBar.visible = false;
@@ -197,21 +205,21 @@ export default class BattleSceneGraphics {
   }
 
   public createPlayerPokemonName(pokemonName: string) {
-    const playerPokemonName = this.scene.add.text(180, 142, `${pokemonName}`, {
+    const playerPokemonName = this.scene.add.text(screen.width * 0.1332357247, screen.height * 0.1848958333, `${pokemonName}`, {
       stroke: '#000000',
-      strokeThickness: 5,
+      strokeThickness: screen.width * 0.0036603221,
       align: 'center',
-      fontSize: 12,
+      fontSize: screen.width * 0.0087847731,
     });
     playerPokemonName.visible = false;
     return playerPokemonName;
   }
 
   public createOpponentPokemonName(pokemonName: string) {
-    const opponentPokemonName = this.scene.add.text(15, 35, `${pokemonName}`, {
+    const opponentPokemonName = this.scene.add.text(screen.width * 0.0109809663, screen.height * 0.0455729167, `${pokemonName}`, {
       stroke: '#000000',
-      strokeThickness: 5,
-      fontSize: 12,
+      strokeThickness: screen.width * 0.0036603221,
+      fontSize: screen.width * 0.0087847731,
       align: 'center',
     });
     opponentPokemonName.visible = false;
@@ -219,21 +227,21 @@ export default class BattleSceneGraphics {
   }
 
   public createPlayerPokemonLevel() {
-    const playerPokemonLevel = this.scene.add.text(295, 142, '50', {
+    const playerPokemonLevel = this.scene.add.text(screen.width * 0.2159590044, screen.height * 0.1848958333, '50', {
       stroke: '#000000',
-      strokeThickness: 5,
+      strokeThickness: screen.width * 0.0036603221,
       align: 'center',
-      fontSize: 12,
+      fontSize: screen.width * 0.0087847731,
     });
     playerPokemonLevel.visible = false;
     return playerPokemonLevel;
   }
 
   public createOpponentPokemonLevel() {
-    const enemyPokemonLevel = this.scene.add.text(125, 35, '50', {
+    const enemyPokemonLevel = this.scene.add.text(screen.width * 0.0915080527, screen.height * 0.0455729167, '50', {
       stroke: '#000000',
-      strokeThickness: 5,
-      fontSize: 12,
+      strokeThickness: screen.width * 0.0036603221,
+      fontSize: screen.width * 0.0087847731,
       align: 'center',
     });
     enemyPokemonLevel.visible = false;
@@ -245,13 +253,13 @@ export default class BattleSceneGraphics {
     pokemonMaxHealth: number
   ) {
     const healthText = this.scene.add.text(
-      255,
-      162,
+      screen.width * 0.1866764275,
+      screen.height * 0.2109375,
       `${pokemonCurrentHealth}/${pokemonMaxHealth}`,
       {
         stroke: '#000000',
-        strokeThickness: 5,
-        fontSize: 12,
+        strokeThickness: screen.width * 0.0036603221,
+        fontSize: screen.width * 0.0087847731,
         align: 'center',
       }
     );
@@ -270,7 +278,7 @@ export default class BattleSceneGraphics {
       hpRectMaxWidth
     );
     const hpRect = this.scene.add
-      .rectangle(249.2, 161, rectWidth, 5.2, 0x00bf37)
+      .rectangle(screen.width * 0.1824304539, screen.height * 0.2096354167, rectWidth, screen.height * 0.0067708333, 0x00bf37)
       .setOrigin(0, 0);
     hpRect.visible = false;
     return hpRect;
@@ -278,7 +286,7 @@ export default class BattleSceneGraphics {
 
   public createOpponentHpRect(opponentPokemonMaxWidth: number) {
     const opponentHpRect = this.scene.add
-      .rectangle(60, 53, opponentPokemonMaxWidth, 5.2, 0x00bf37)
+      .rectangle(screen.width * 0.0439238653, screen.height * 0.0690104167, opponentPokemonMaxWidth, screen.height * 0.0067708333, 0x00bf37)
       .setOrigin(0, 0);
     opponentHpRect.visible = false;
     return opponentHpRect;
@@ -303,9 +311,13 @@ export default class BattleSceneGraphics {
   ) {
     const playerPokemon = this.scene.add.sprite(
       playerPokemonStartX,
-      150,
+      screen.height * 0.1953125,
       'player-pokemon'
     );
+    playerPokemon.width = (playerPokemon.width / 1366) * screen.width;
+    playerPokemon.height = (playerPokemon.height / 768) * screen.height;
+    playerPokemon.displayWidth = playerPokemon.width;
+    playerPokemon.displayHeight = playerPokemon.height;
     for (let i = 0; i < frameQuantitiesBack[playerPokemonIndex]; i++) {
       let nextAnim = i + 1;
       if (nextAnim == frameQuantitiesBack[playerPokemonIndex]) {
@@ -334,9 +346,13 @@ export default class BattleSceneGraphics {
   ) {
     const opponentPokemon = this.scene.add.sprite(
       opponentPokemonStartX,
-      80,
+      screen.height * 0.1041666667,
       'enemy-pokemon'
     );
+    opponentPokemon.width = (opponentPokemon.width / 1366) * screen.width;
+    opponentPokemon.height = (opponentPokemon.height / 768) * screen.height;
+    opponentPokemon.displayWidth = opponentPokemon.width;
+    opponentPokemon.displayHeight = opponentPokemon.height;
     for (let i = 0; i < frameQuantitiesBack[enemyPokemonIndex]; i++) {
       let nextAnim = i + 1;
       if (nextAnim == frameQuantitiesBack[enemyPokemonIndex]) {

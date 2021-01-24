@@ -58,11 +58,11 @@ export default class BagMenuDown extends Phaser.Scene {
     createBagArrowAnims(this.anims, 'left');
     const bg = this.backgroundCreator.createBackground(this, 'bg-down-m');
     const graphicsManager = new BagDownGraphicManager(this);
-    const bagX = 39;
-    const bagY = 110;
-    const leftArrowX = 20;
-    const leftArrowY = bg.height - 20;
-    const rightArrowX = 160;
+    const bagX = screen.width * 0.0285505124;
+    const bagY = screen.height * 0.1432291667;
+    const leftArrowX = screen.width * 0.0146412884;
+    const leftArrowY = bg.height - screen.height * 0.0260416667;
+    const rightArrowX = screen.width * 0.1171303075;
     const rightArrowY = leftArrowY;
 
     const bagType1 = graphicsManager.createBagType1(bagX, bagY);
@@ -94,17 +94,17 @@ export default class BagMenuDown extends Phaser.Scene {
     );
     this.renderManager.setTexts(itemsTexts);
 
-    const sliderX = 331;
-    const sliderY = 43;
-    const sliderEndY = 164;
+    const sliderX = screen.width * 0.2423133236;
+    const sliderY = screen.height * 0.0559895833;
+    const sliderEndY = screen.height * 0.2135416667;
 
     for (let i = 0; i < this.items.length; i++) {
       const bagSet = this.items[i];
-      let itemX = 240;
-      let itemY = 40;
+      let itemX = screen.width * 0.1756954612;
+      let itemY = screen.height * 0.0520833333;
       let itemPanels: Phaser.GameObjects.Image[] = [];
       let textPanels: Phaser.GameObjects.Text[] = [];
-      for (let j = 0; j < 6 && j < bagSet.length; j++, itemY += 35) {
+      for (let j = 0; j < 6 && j < bagSet.length; j++, itemY += screen.height * 0.0455729167) {
         const itemPanel = graphicsManager.createItemPanel(itemX, itemY);
         if (j == 0) {
           itemPanel.setTexture('item-selected');
@@ -112,7 +112,7 @@ export default class BagMenuDown extends Phaser.Scene {
         //request the item name
         const text = await requestTextAndDescription(bagSet[j]);
         const panelText = this.add
-          .text(itemX - 70, itemY - 8, text.name)
+          .text(itemX - screen.width * 0.0512445095, itemY - screen.height * 0.0104166667, text.name)
           .setOrigin(0, 0)
           .setDepth(1);
 
@@ -137,7 +137,7 @@ export default class BagMenuDown extends Phaser.Scene {
       this.renderManager.pushSlider(slider);
     }
 
-    for (let i = 0, y = bg.height / 2 + 20; i < 2; i++, y += 30) {
+    for (let i = 0, y = bg.height / 2 + (screen.height * 0.0260416667); i < 2; i++, y += screen.height * 0.0390625) {
       const commandUnsel = graphicsManager.createCommandUnsel(bg, y);
       const commandText = graphicsManager.createCommandText(commandUnsel, i);
       this.renderManager.pushCommandUnsel(commandUnsel);

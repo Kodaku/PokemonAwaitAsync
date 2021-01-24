@@ -6,8 +6,8 @@ import 'regenerator-runtime/runtime';
 
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
-  width: 800,
-  height: 600,
+  width: (800 / 1366) * screen.width,
+  height: (600 / 768) * screen.height,
   physics: {
     default: 'arcade',
     arcade: {

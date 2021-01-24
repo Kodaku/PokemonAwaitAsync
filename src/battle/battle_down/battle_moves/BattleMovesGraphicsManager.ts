@@ -17,11 +17,10 @@ export default class BattleMovesGraphicsManager {
   public createMoveBox(
     boxX: number,
     boxY: number,
-    indexes: number[],
-    index: number
+    moveType: string
   ) {
     const moveBox = this.scene.add
-      .image(boxX, boxY, `move-${pokemon_types[indexes[index]]}`)
+      .image(boxX, boxY, `move-${moveType}`)
       .setOrigin(0, 0);
     moveBox.width = screen.width * 0.1251830161;
     moveBox.height = screen.height * 0.078125;
@@ -46,24 +45,24 @@ export default class BattleMovesGraphicsManager {
     return moveBoxSelector;
   }
 
-  public createMoveText(boxX: number, boxY: number, name: string) {
+  public createMoveText(boxX: number, boxY: number, name: string, pp: number, maxPP: number) {
     const moveName = this.scene.add
-      .text(boxX + 36, boxY + 10, `${name}`, {
-        fontSize: 16,
+      .text(boxX + screen.width * 0.0263543192, boxY + screen.height * 0.0130208333, `${name}`, {
+        fontSize: screen.width * 0.0117130307,
       })
       .setOrigin(0, 0);
     moveName.setAlign('center');
 
     const ppText = this.scene.add
-      .text(boxX + 72, boxY + 40, 'PP', {
-        fontSize: 16,
+      .text(boxX + screen.width * 0.0527086384, boxY + screen.height * 0.0520833333, 'PP', {
+        fontSize: screen.width * 0.0117130307,
       })
       .setOrigin(0, 0);
     ppText.setAlign('center');
 
     const ppQuantity = this.scene.add
-      .text(boxX + 102, boxY + 40, `${20}/${20}`, {
-        fontSize: 16,
+      .text(boxX + screen.width * 0.074670571, boxY + screen.height * 0.0520833333, `${pp}/${maxPP}`, {
+        fontSize: screen.width * 0.0117130307,
       })
       .setOrigin(0, 0);
     ppQuantity.setAlign('center');
@@ -72,22 +71,21 @@ export default class BattleMovesGraphicsManager {
   public createMoveTypeImage(
     boxX: number,
     boxY: number,
-    indexes: number[],
-    index: number
+    moveType: string
   ) {
     const moveTypeImage = this.scene.add
-      .image(boxX + 24, boxY + 33, `${pokemon_types[indexes[index]]}`)
+      .image(boxX + screen.width * 0.0175695461, boxY + screen.height * 0.04296875, `${moveType}`)
       .setOrigin(0, 0);
-    moveTypeImage.width = 45;
-    moveTypeImage.height = 20;
+    moveTypeImage.width = screen.width * 0.032942899;
+    moveTypeImage.height = screen.height * 0.0260416667;
     moveTypeImage.displayWidth = moveTypeImage.width;
     moveTypeImage.displayHeight = moveTypeImage.height;
     return moveTypeImage;
   }
 
   public createPlayerPokeBalls(pokemons: Pokemon[]) {
-    let playerPokeBallX = 85;
-    for (let i = 0; i < 6; i++, playerPokeBallX += 28) {
+    let playerPokeBallX = screen.width * 0.0622254758;
+    for (let i = 0; i < 6; i++, playerPokeBallX += screen.width * 0.0204978038) {
       let texture = '';
       if (pokemons[i].ps > 0) {
         texture = 'battle-ball-normal';
@@ -95,10 +93,10 @@ export default class BattleMovesGraphicsManager {
         texture = 'battle-ball-fainted';
       }
       const playerPokeBall = this.scene.add
-        .image(playerPokeBallX, 190, texture)
+        .image(playerPokeBallX, screen.height * 0.2473958333, texture)
         .setOrigin(0, 0);
-      playerPokeBall.width = 25;
-      playerPokeBall.height = 25;
+      playerPokeBall.width = screen.width * 0.0183016105;
+      playerPokeBall.height = screen.height * 0.0325520833;
       playerPokeBall.displayWidth = playerPokeBall.width;
       playerPokeBall.displayHeight = playerPokeBall.height;
     }
@@ -106,9 +104,9 @@ export default class BattleMovesGraphicsManager {
 
   public createBackImage() {
     const backImage = this.scene.add
-      .image(235, 218, 'battle-return')
+      .image(screen.width * 0.1720351391, screen.height * 0.2838541667, 'battle-return')
       .setOrigin(0, 0);
-    backImage.width = 100;
+    backImage.width = screen.width * 0.0732064422;
     backImage.height = screen.height * 0.078125;
     backImage.displayWidth = backImage.width;
     backImage.displayHeight = backImage.height;

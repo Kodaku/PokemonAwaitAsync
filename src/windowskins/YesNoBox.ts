@@ -44,8 +44,8 @@ export default class YesNoBox extends Box {
             this.yesNoBox.height = 60;
             this.yesNoBox.displayWidth = 60;
             this.yesNoBox.displayHeight = 60;
-            this.yesNoBox.setX(this.box.x + this.box.width / 2 - 48);
-            this.yesNoBox.setY(this.box.y - 48);
+            this.yesNoBox.setX(this.box.x + this.box.width / 2 - (48 / 1366) * screen.width);
+            this.yesNoBox.setY(this.box.y - (48 / 768) * screen.height);
             this.arrow = this.scene.add
               .image(0, 0, 'pause-img')
               .setRotation(-1.5708);
@@ -56,33 +56,33 @@ export default class YesNoBox extends Box {
             //   0x000000
             // );
             this.textYes = this.scene.add
-              .text(this.yesNoBox.x - 10, this.yesNoBox.y - 15, 'YES', {
+              .text(this.yesNoBox.x - (10 / 1366) * screen.width, this.yesNoBox.y - (15 / 768) * screen.height, 'YES', {
                 color: '000000',
               })
               .setDepth(101);
             this.textNo = this.scene.add
-              .text(this.yesNoBox.x - 5, this.yesNoBox.y + 5, 'NO', {
+              .text(this.yesNoBox.x - (5 / 1366) * screen.width, this.yesNoBox.y + (5 / 768) * screen.height, 'NO', {
                 color: '000000',
               })
               .setDepth(101);
-            this.arrow.setX(this.textYes.x - 5);
-            this.arrow.setY(this.textYes.y + 5);
+            this.arrow.setX(this.textYes.x - (5 / 1366) * screen.width);
+            this.arrow.setY(this.textYes.y + (5 / 768) * screen.height);
             this.arrow.setDepth(101);
             this.cursors = this.scene.input.keyboard.createCursorKeys();
             setInterval(() => {
               this.canChoose = true;
               if (this.cursors.down?.isDown) {
-                this.arrow.setY(this.textNo.y + 5);
+                this.arrow.setY(this.textNo.y + (5 / 768) * screen.height);
               } else if (this.cursors.up?.isDown) {
-                this.arrow.setY(this.textYes.y + 5);
+                this.arrow.setY(this.textYes.y + (5 / 768) * screen.height);
               }
             }, 50);
             //go into this code when pressing A and showing the YES NO Box
           } else if (this.canChoose) {
-            if (this.arrow.y == this.textYes.y + 5) {
+            if (this.arrow.y == this.textYes.y + (5 / 768) * screen.height) {
               this.reply = 'YES';
               sceneEvents.emit('choose');
-            } else if (this.arrow.y == this.textNo.y + 5) {
+            } else if (this.arrow.y == this.textNo.y + (5 / 768) * screen.height) {
               this.reply = 'NO';
               sceneEvents.emit('choose');
             }

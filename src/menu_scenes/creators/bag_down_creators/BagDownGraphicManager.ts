@@ -9,8 +9,8 @@ export default class BagDownGraphicManager {
     bagY: number
   ): Phaser.Physics.Arcade.Sprite {
     const bagType1 = this.scene.physics.add.sprite(bagX, bagY, '');
-    bagType1.width = 20;
-    bagType1.height = 20;
+    bagType1.width = screen.width * 0.0146412884;
+    bagType1.height = screen.height * 0.0260416667;
     bagType1.displayHeight = bagType1.height;
     bagType1.displayWidth = bagType1.width;
     bagType1.anims.play(`bag1-m-move`);
@@ -23,12 +23,12 @@ export default class BagDownGraphicManager {
     bagType1: Phaser.Physics.Arcade.Sprite
   ) {
     const bagType2 = this.scene.physics.add.sprite(
-      bagX - 15,
+      bagX - screen.width * 0.0109809663,
       bagY + bagType1.height / 2,
       ''
     );
-    bagType2.width = 20;
-    bagType2.height = 20;
+    bagType2.width = screen.width * 0.0146412884;
+    bagType2.height = screen.height * 0.0260416667;
     bagType2.displayHeight = bagType2.height;
     bagType2.displayWidth = bagType2.width;
     bagType2.anims.play(`bag2-m-idle`);
@@ -41,12 +41,12 @@ export default class BagDownGraphicManager {
     bagType1: Phaser.Physics.Arcade.Sprite
   ) {
     const bagType3 = this.scene.physics.add.sprite(
-      bagX + 28,
-      bagY + bagType1.height / 2 + 5,
+      bagX + screen.width * 0.0204978038,
+      bagY + bagType1.height / 2 + screen.height * 0.0065104167,
       ''
     );
-    bagType3.width = 20;
-    bagType3.height = 20;
+    bagType3.width = screen.width * 0.0146412884;
+    bagType3.height = screen.height * 0.0260416667;
     bagType3.displayHeight = bagType3.height;
     bagType3.displayWidth = bagType3.width;
     bagType3.anims.play(`bag3-m-idle`);
@@ -59,12 +59,12 @@ export default class BagDownGraphicManager {
     bagType1: Phaser.Physics.Arcade.Sprite
   ) {
     const bagType4 = this.scene.physics.add.sprite(
-      bagX + 73,
-      bagY + bagType1.height / 2 - 23,
+      bagX + screen.width * 0.0534407028,
+      bagY + bagType1.height / 2 - screen.height * 0.0299479167,
       ''
     );
-    bagType4.width = 20;
-    bagType4.height = 20;
+    bagType4.width = screen.width * 0.0146412884;
+    bagType4.height = screen.height * 0.0260416667;
     bagType4.displayHeight = bagType4.height;
     bagType4.displayWidth = bagType4.width;
     bagType4.anims.play(`bag4-m-idle`);
@@ -72,9 +72,9 @@ export default class BagDownGraphicManager {
   }
 
   public createBagType5(bagX: number, bagY: number) {
-    const bagType5 = this.scene.physics.add.sprite(bagX + 70, bagY - 5, '');
-    bagType5.width = 20;
-    bagType5.height = 20;
+    const bagType5 = this.scene.physics.add.sprite(bagX + screen.width * 0.0512445095, bagY - screen.height * 0.0065104167, '');
+    bagType5.width = screen.width * 0.0146412884;
+    bagType5.height = screen.height * 0.0260416667;
     bagType5.displayHeight = bagType5.height;
     bagType5.displayWidth = bagType5.width;
     bagType5.anims.play(`bag5-m-idle`);
@@ -87,8 +87,8 @@ export default class BagDownGraphicManager {
       leftArrowY,
       ''
     );
-    leftLightArrow.width = 25;
-    leftLightArrow.height = 25;
+    leftLightArrow.width = screen.width * 0.0183016105;
+    leftLightArrow.height = screen.height * 0.0325520833;
     leftLightArrow.displayHeight = leftLightArrow.height;
     leftLightArrow.displayWidth = leftLightArrow.width;
     leftLightArrow.anims.play(`left-light-arrow-idle`);
@@ -102,8 +102,8 @@ export default class BagDownGraphicManager {
       rightArrowY,
       ''
     );
-    rightLightArrow.width = 25;
-    rightLightArrow.height = 25;
+    rightLightArrow.width = screen.width * 0.0183016105;
+    rightLightArrow.height = screen.height * 0.0325520833;
     rightLightArrow.displayHeight = rightLightArrow.height;
     rightLightArrow.displayWidth = rightLightArrow.width;
     rightLightArrow.anims.play(`right-light-arrow-idle`);
@@ -118,15 +118,15 @@ export default class BagDownGraphicManager {
     let texts: Phaser.GameObjects.Text[] = [];
     for (let i = 0; i < itemsText.length; i++) {
       const text = this.scene.add.text(
-        leftArrowX + 40,
-        leftArrowY - 8,
+        leftArrowX + screen.width * 0.0292825769,
+        leftArrowY - screen.height * 0.0104166667,
         itemsText[i],
         {
-          fontSize: 20,
+          fontSize: screen.width * 0.0146412884,
         }
       );
       if (text.x + text.width > rightArrowX - leftArrowX) {
-        text.setFontSize(15);
+        text.setFontSize(screen.width * 0.0109809663);
       }
       if (i > 0) {
         text.visible = false;
@@ -138,8 +138,8 @@ export default class BagDownGraphicManager {
 
   public createItemPanel(itemX: number, itemY: number) {
     const itemPanel = this.scene.add.image(itemX, itemY, 'item-unselected');
-    itemPanel.width = 155;
-    itemPanel.height = 35;
+    itemPanel.width = screen.width * 0.1134699854;
+    itemPanel.height = screen.height * 0.0455729167;
     itemPanel.displayWidth = itemPanel.width;
     itemPanel.displayHeight = itemPanel.height;
     return itemPanel;
@@ -147,11 +147,11 @@ export default class BagDownGraphicManager {
 
   public createCommandUnsel(bg: Phaser.GameObjects.Image, y: number) {
     const commandUnsel = this.scene.add
-      .image(bg.width - 300, y, 'command-unsel')
+      .image(bg.width - screen.width * 0.2196193265, y, 'command-unsel')
       .setDepth(2)
       .setOrigin(0, 0);
-    commandUnsel.height = 30;
-    commandUnsel.width = 120;
+    commandUnsel.height = screen.width * 0.0219619327;
+    commandUnsel.width = screen.height * 0.15625;
     commandUnsel.displayHeight = commandUnsel.height;
     commandUnsel.displayWidth = commandUnsel.width;
     commandUnsel.visible = false;
@@ -164,8 +164,8 @@ export default class BagDownGraphicManager {
     index: number
   ) {
     const commandText = this.scene.add
-      .text(commandUnsel.x + 10, commandUnsel.y + 6, itemOptions[index], {
-        fontSize: 18,
+      .text(commandUnsel.x + screen.width * 0.0073206442, commandUnsel.y + screen.height * 0.0078125, itemOptions[index], {
+        fontSize: screen.width * 0.0131771596,
       })
       .setDepth(2)
       .setOrigin(0, 0);

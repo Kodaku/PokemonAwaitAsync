@@ -47,6 +47,9 @@ export default class BattleItemDescription extends Phaser.Scene {
     this.item = data.itemToString;
     this.itemIndex = data.itemIndex;
     this.cursor = -1;
+    const menuSelectSound = this.sound.add("menu-select-sound");
+    const menuChooseSound = this.sound.add("menu-choose-sound");
+    const menuCancel = this.sound.add("cancel-sound");
     const graphicsManager = new BattleItemDescriptionGraphicsManager(this);
     //BG
     const bg = graphicsManager.createBackground();
@@ -82,6 +85,7 @@ export default class BattleItemDescription extends Phaser.Scene {
     const backImage = graphicsManager.createBackImage();
     // Input Keyboards
     this.input.keyboard.on('keydown-R', () => {
+      menuSelectSound.play();
       this.keyCode = Phaser.Input.Keyboard.KeyCodes.R;
       this.updateCursor();
       this.renderAll();
@@ -89,6 +93,7 @@ export default class BattleItemDescription extends Phaser.Scene {
     this.input.keyboard.on(
       'keydown-Z',
       () => {
+        menuChooseSound.play();
         if (this.cursor !== -1) {
           let partyState = 0;
           console.log(data.items[this.itemIndex]);
@@ -125,6 +130,7 @@ export default class BattleItemDescription extends Phaser.Scene {
         this.bPressedCount++;
         if (this.bPressedCount > 0) {
           this.switchOff();
+          menuCancel.play();
           this.scene.add('battle-item-menu', BattleItemMenu, true, {
             sceneToRemove: 'battle-item-description',
             bPressedCount: -1,

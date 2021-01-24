@@ -54,7 +54,7 @@ export default class BattleBackground extends Phaser.Scene {
           this.waitZ = true;
           sse.close();
           sceneEvents.emit('emergency-reset');
-        }, 45000);
+        }, 30000);
         sse.addEventListener('message', (ev) => {
           sse.close();
           this.switchOff();
@@ -87,7 +87,7 @@ export default class BattleBackground extends Phaser.Scene {
               this.waitZ = true;
               sse2.close();
               sceneEvents.emit('emergency-reset');
-            }, 10000);
+            }, 30000);
             sse2.addEventListener('message', (ev) => {
               sse2.close();
               clearTimeout(timeout2);
@@ -126,7 +126,7 @@ export default class BattleBackground extends Phaser.Scene {
           this.waitZ = true;
           sse.close();
           sceneEvents.emit('emergency-reset');
-        }, 20000);
+        }, 30000);
         sse.addEventListener('message', (ev) => {
           sse.close();
           clearTimeout(timeout);
@@ -166,11 +166,11 @@ export default class BattleBackground extends Phaser.Scene {
     await sendEmergencyReset(this.userID);
     this.add
       .text(
-        screen.width * 0.0146412884,
-        screen.width * 0.0732064422,
-        'The server has encountered a problem\nPress B to keep playing'
+        screen.width * 0.116412884,
+        screen.height * 0.132064422,
+        'The server has encountered a problem\n\nPress B to keep playing'
       )
-      .setOrigin(0.5, 0.5);
+      .setOrigin(0, 0);
   }
 
   private switchOff() {

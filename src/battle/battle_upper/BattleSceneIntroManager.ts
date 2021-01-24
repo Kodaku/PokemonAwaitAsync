@@ -28,18 +28,18 @@ export default class BattleSceneIntroManager {
 
   public initializePlayerPosition() {
     this.playerStartX = this.scene.game.config.width as number;
-    this.playerEndX = 50;
-    this.playerBaseStartX = this.playerStartX - 50;
+    this.playerEndX = screen.width * 0.0366032211;
+    this.playerBaseStartX = this.playerStartX - screen.width * 0.0366032211;
     this.playerBaseEndX = 0;
-    this.playerPartyBallEndX = 210;
+    this.playerPartyBallEndX = screen.width * 0.1537335286;
   }
 
   public initializeOpponentPosition() {
     this.opponentStartX = 0;
-    this.opponentEndX = 210;
-    this.opponentBaseStartX = this.opponentStartX - 60;
-    this.opponentBaseEndX = 150;
-    this.opponentPartyBallEndX = 110;
+    this.opponentEndX = screen.width * 0.1537335286;
+    this.opponentBaseStartX = this.opponentStartX - screen.width * 0.0439238653;
+    this.opponentBaseEndX = screen.width * 0.1098096633;
+    this.opponentPartyBallEndX = screen.width * 0.0805270864;
   }
 
   public createIntroGraphics(
@@ -146,15 +146,15 @@ export default class BattleSceneIntroManager {
   }
 
   public setPlayerBaseX() {
-    this.playerBase.setX((this.playerBaseStartX -= 2));
+    this.playerBase.setX((this.playerBaseStartX -= screen.width * 0.0029282577));
   }
 
   public setOpponentBaseX() {
-    this.opponentBase.setX((this.opponentBaseStartX += 2));
+    this.opponentBase.setX((this.opponentBaseStartX += screen.width * 0.0029282577));
   }
 
   public setPlayerImageX() {
-    this.playerImage.setX((this.playerStartX -= 2));
+    this.playerImage.setX((this.playerStartX -= screen.width * 0.0029282577));
   }
 
   public setPlayerImageAlpha() {
@@ -162,7 +162,7 @@ export default class BattleSceneIntroManager {
   }
 
   public setOpponentImageX() {
-    this.opponentImage.setX((this.opponentStartX += 2));
+    this.opponentImage.setX((this.opponentStartX += screen.width * 0.0029282577));
   }
 
   public setOpponentImageAlpha() {
@@ -171,14 +171,14 @@ export default class BattleSceneIntroManager {
 
   public enterPlayerAndOpponentPartyBalls() {
     for (let i = 0; i < this.playerPartyBalls.length; i++) {
-      this.playerPartyBalls[i].setX((this.playerPartyBallStartX[i] -= 2));
-      this.opponentPartyBalls[i].setX((this.opponentPartyBallStartX[i] += 2));
+      this.playerPartyBalls[i].setX((this.playerPartyBallStartX[i] -= screen.width * 0.0029282577));
+      this.opponentPartyBalls[i].setX((this.opponentPartyBallStartX[i] += screen.width * 0.0029282577));
     }
   }
 
   public enterPlayerPartyBalls() {
     for (let i = 0; i < this.playerPartyBalls.length; i++) {
-      this.playerPartyBalls[i].setX((this.playerPartyBallStartX[i] -= 2));
+      this.playerPartyBalls[i].setX((this.playerPartyBallStartX[i] -= screen.width * 0.0029282577));
     }
   }
   public introPlayerCompleted() {
@@ -210,6 +210,4 @@ export default class BattleSceneIntroManager {
   public playerImageFaded() {
     return this.playerImage.alpha <= 0;
   }
-
-  public getPlayer;
 }

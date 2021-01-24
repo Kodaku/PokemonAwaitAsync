@@ -66,6 +66,15 @@ export type Pokemon = {
   speed: number;
 };
 
+export type Move = {
+  name: string;
+  pp: number;
+  power: number;
+  type: string;
+  accuracy: number;
+  typology: string;
+};
+
 export type CureItem = {
   index: string;
   name: string;

@@ -88,16 +88,16 @@ export default class PartyMenu extends Phaser.Scene {
     const graphicsManager = new PartyGraphicManager(this);
     const renderManager = new PartyRenderManager();
     this.eventsManager = new PartyEventManager();
-    let panelX = 3;
-    let panelY = 40;
+    let panelX = (3 / 1366) * screen.width;
+    let panelY = (40 / 768) * screen.height;
     for (let i = 0; i < 6; i++) {
       const panel = graphicsManager.createPanel(panelX, panelY, bg);
       const hpBar = graphicsManager.createHPBar(panelX, panelY, panel);
       graphicsManager.createLevelText(panelX, panelY, panel);
       panelX += panel.width;
       if (panelX >= bg.width) {
-        panelX = 3;
-        panelY += panel.height + 10;
+        panelX = (3 / 1366) * screen.width;
+        panelY += panel.height + (10 / 768) * screen.height;
       }
       const hpRect = graphicsManager.createHPRect(hpBar);
       renderManager.pushHpRect(hpRect);
@@ -114,8 +114,8 @@ export default class PartyMenu extends Phaser.Scene {
     renderManager.setPokemons(pokemons);
     renderManager.setTotalHP(healths);
     const panels = renderManager.getPanels();
-    panelX = 3;
-    panelY = 40;
+    panelX = (3 / 1366) * screen.width;
+    panelY = (40 / 768) * screen.height;
     for (let i = 0; i < 6; i++) {
       const pokemonIcon = graphicsManager.createIconSprite(
         panelX,
@@ -140,13 +140,13 @@ export default class PartyMenu extends Phaser.Scene {
       );
       panelX += panels[i].width;
       if (panelX >= bg.width) {
-        panelX = 3;
-        panelY += panels[i].height + 10;
+        panelX = (3 / 1366) * screen.width;
+        panelY += panels[i].height + (10 / 768) * screen.height;
       }
       renderManager.pushPokemonIcon(pokemonIcon);
       renderManager.pushHpText(hpText);
     }
-    for (let i = 0, y = bg.height / 2 + 20; i < 3; i++, y += 30) {
+    for (let i = 0, y = bg.height / 2 + (20 / 768) * screen.height; i < 3; i++, y += (30 / 768) * screen.height) {
       const commandUnsel = graphicsManager.createCommandUnsel(bg, y);
       const commandText = graphicsManager.createCommandText(commandUnsel, i);
       renderManager.pushCommandUnsel(commandUnsel);

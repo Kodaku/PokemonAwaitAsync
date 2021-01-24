@@ -59,8 +59,9 @@ export class Preloader extends Phaser.Scene {
     this.load.audio('vs-rival-sound', `music/BGM/VSRival.mp3`);
     this.load.audio(
       'victory-trainer-intro-sound',
-      `music/ME/VictoryTrainter_Intro.wav`
+      `music/ME/VictoryTrainer_Intro.wav`
     );
+    this.load.audio("victory-trainer-sound", "music/ME/VictoryTrainer.mp3");
     this.load.audio('vs-rival-intro-sound', `music/ME/VSRival_Intro.mp3`);
     this.load.audio('bump-sound', `music/SE/bump.mp3`);
     this.load.audio('bag-sound', `music/SE/BW2BagSound.wav`);

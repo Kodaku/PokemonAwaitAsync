@@ -32,16 +32,18 @@ export default class Menu extends Phaser.Scene {
     const menuCreator = new MenuGraphicCreator(this);
     const renderManager = new MenuRenderManager();
     const eventCreator = new MenuEventManager();
-    let panelX = 3;
-    let panelY = 40;
+    const menuSelectSound = this.sound.add("menu-select-sound");
+    const menuChooseSound = this.sound.add("menu-choose-sound");
+    let panelX = (3 / 1366) * screen.width;
+    let panelY = (40 / 768) * screen.height;
     for (let i = 0; i < totalPanels; i++) {
       const panel = menuCreator.createPanel(panelX, panelY, menu);
       const icon = menuCreator.createIcon(panelX, panelY, panel, i);
       const text = menuCreator.createText(panelX, panelY, panel, i);
       panelX += panel.width;
       if (panelX >= menu.width) {
-        panelX = 3;
-        panelY += panel.height + 10;
+        panelX = (3 / 1366) * screen.width;
+        panelY += panel.height + (10 / 768) * screen.height;
       }
       renderManager.pushPanel(panel, i);
       renderManager.pushIcon(icon, i);
@@ -58,17 +60,22 @@ export default class Menu extends Phaser.Scene {
     });
     this.input.keyboard.on('keydown-R', () => {
       this.keyPressed = Phaser.Input.Keyboard.KeyCodes.R;
+      menuSelectSound.play();
     });
     this.input.keyboard.on('keydown-L', () => {
       this.keyPressed = Phaser.Input.Keyboard.KeyCodes.L;
+      menuSelectSound.play();
     });
     this.input.keyboard.on('keydown-U', () => {
       this.keyPressed = Phaser.Input.Keyboard.KeyCodes.U;
+      menuSelectSound.play();
     });
     this.input.keyboard.on('keydown-D', () => {
       this.keyPressed = Phaser.Input.Keyboard.KeyCodes.D;
+      menuSelectSound.play();
     });
-    this.input.keyboard.on('keydown-ENTER', () => {
+    this.input.keyboard.on('keydown-Z', () => {
+      menuChooseSound.play();
       switch (this.menuCursor.getCursorPosition()) {
         case IconSelectable.POKEMON: {
           this.removeEvents();
@@ -104,7 +111,7 @@ export default class Menu extends Phaser.Scene {
     this.input.keyboard.off('keydown-L');
     this.input.keyboard.off('keydown-U');
     this.input.keyboard.off('keydown-D');
-    this.input.keyboard.off('keydown-ENTER');
+    this.input.keyboard.off('keydown-Z');
     // this.scene.add(sceneName, { userID: this.userID, sceneName: 'menu' });
   }
 
@@ -116,7 +123,7 @@ export default class Menu extends Phaser.Scene {
     this.input.keyboard.off('keydown-L');
     this.input.keyboard.off('keydown-U');
     this.input.keyboard.off('keydown-D');
-    this.input.keyboard.off('keydown-ENTER');
+    this.input.keyboard.off('keydown-Z');
     this.scene.start('empty-scene', { removeMenu: true });
   }
 

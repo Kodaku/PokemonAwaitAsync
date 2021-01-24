@@ -17,10 +17,10 @@ export default class Box {
   protected waitDestroy!: boolean;
   constructor(public scene: Phaser.Scene, public reference: Reference) {
     this.box = this.scene.add.image(reference.x, reference.y, 'box');
-    this.box.width = 350;
-    this.box.height = 60;
-    this.box.displayHeight = 60;
-    this.box.displayWidth = 350;
+    this.box.width = (350 / 1366) * screen.width;
+    this.box.height = (60 / 768) * screen.height;
+    this.box.displayHeight = this.box.height;
+    this.box.displayWidth = this.box.width;
     this.box.setX(this.box.x + this.reference.width / 2);
     this.box.setY(this.box.y + 2 * this.reference.height);
     this.box.setDepth(100);
@@ -50,8 +50,8 @@ export default class Box {
   }
 
   private showText() {
-    this.textX += 8;
-    if (this.textX > this.startX + this.box.width - 30) {
+    this.textX += (8 / 1366) * screen.width;
+    if (this.textX > this.startX + this.box.width - (30 / 1366) * screen.width) {
       this.textX = this.startX;
       this.textY += this.box.height / 2 - this.box.height / 6;
       if (this.textY > this.box.height / 2 + this.startY && !this.waitA) {
@@ -81,8 +81,8 @@ export default class Box {
     this.textY = this.startY;
     this.counter = 0;
     this.pause = this.scene.add.sprite(
-      this.box.x + this.box.width / 2 - 10,
-      this.box.y + this.box.height / 2 - 10,
+      this.box.x + this.box.width / 2 - (10 / 1366) * screen.width,
+      this.box.y + this.box.height / 2 - (10 / 768) * screen.height,
       'pause-img'
     );
     this.pause.setDepth(101);

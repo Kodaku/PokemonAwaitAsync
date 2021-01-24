@@ -154,11 +154,13 @@ export default class BattlePartyMenu extends Phaser.Scene {
     for (let i = 0; i < this.pokemons.length; i++) {
       createIconAnims(this.anims, this.pokemons[i].pokedexNumber);
     }
+    const menuSelectSound = this.sound.add("menu-select-sound");
+    const menuChooseSound = this.sound.add("menu-choose-sound");
+    const menuCancel = this.sound.add("cancel-sound");
     const graphicsManager = new BattlePartyMenuGraphicsManager(this);
     const bg = graphicsManager.createBackground();
-
     let boxX = 0;
-    let boxY = 13;
+    let boxY = screen.height * 0.0169270833;
     for (let i = 0; i < 6; i++) {
       //Party member box and selector
       const partyMemberBox = graphicsManager.createPartyMemberBox(boxX, boxY);
@@ -203,9 +205,9 @@ export default class BattlePartyMenu extends Phaser.Scene {
       this.currentHealths.push(currentHealth);
 
       boxX += partyMemberBox.width;
-      if (boxX + 20 > (this.game.config.width as number)) {
+      if (boxX + screen.width * 0.0146412884 > (this.game.config.width as number)) {
         boxX = 0;
-        boxY += partyMemberBox.height + 5;
+        boxY += partyMemberBox.height + screen.width * 0.0065104167;
       }
     }
     //Back image
@@ -214,6 +216,7 @@ export default class BattlePartyMenu extends Phaser.Scene {
     this.input.keyboard.on(
       'keydown-R',
       () => {
+        menuSelectSound.play();
         this.keyCode = Phaser.Input.Keyboard.KeyCodes.R;
         this.updateCursor();
         this.renderAll();
@@ -223,6 +226,7 @@ export default class BattlePartyMenu extends Phaser.Scene {
     this.input.keyboard.on(
       'keydown-L',
       () => {
+        menuSelectSound.play();
         this.keyCode = Phaser.Input.Keyboard.KeyCodes.L;
         this.updateCursor();
         this.renderAll();
@@ -232,6 +236,7 @@ export default class BattlePartyMenu extends Phaser.Scene {
     this.input.keyboard.on(
       'keydown-U',
       () => {
+        menuSelectSound.play();
         this.keyCode = Phaser.Input.Keyboard.KeyCodes.U;
         this.updateCursor();
         this.renderAll();
@@ -241,6 +246,7 @@ export default class BattlePartyMenu extends Phaser.Scene {
     this.input.keyboard.on(
       'keydown-D',
       () => {
+        menuSelectSound.play();
         this.keyCode = Phaser.Input.Keyboard.KeyCodes.D;
         this.updateCursor();
         this.renderAll();
@@ -251,6 +257,7 @@ export default class BattlePartyMenu extends Phaser.Scene {
       'keydown-Z',
       () => {
         if (this.cursor !== -1) {
+          menuChooseSound.play();
           switch (this.state) {
             case BattlePartyState.SWITCH: {
               if (this.pokemons[this.cursor].ps > 0) {
@@ -318,6 +325,7 @@ export default class BattlePartyMenu extends Phaser.Scene {
         this.bPressedCount++;
         if (this.bPressedCount > 0) {
           this.switchOff();
+          menuCancel.play();
           this.scene.add('battle-menu', BattleMenu, true, {
             sceneToRemove: 'battle-party-menu',
             userID: this.userID,

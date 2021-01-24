@@ -23,8 +23,8 @@ export default class BattleMessageBox extends Box {
     this.texts = [];
     this.counter = 0;
     this.waitA = false;
-    this.startX = 10;
-    this.startY = this.box.y + 10;
+    this.startX = (10 / 1366) * screen.width;
+    this.startY = this.box.y + (10 / 768) * screen.height;
     this.textX = this.startX;
     this.textY = this.startY;
     sceneEvents.on('new-text', () => {

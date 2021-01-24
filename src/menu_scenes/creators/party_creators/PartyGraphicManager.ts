@@ -27,12 +27,12 @@ export default class PartyGraphicManager {
     pokemons: TeamMember[]
   ): Phaser.Physics.Arcade.Sprite {
     const pokemonIcon = this.scene.physics.add.sprite(
-      panelX + 30,
-      panelY + 25,
+      panelX + (30 / 1366) * screen.width,
+      panelY + (25 / 768) * screen.height,
       ''
     );
-    pokemonIcon.width = 20;
-    pokemonIcon.height = 20;
+    pokemonIcon.width = (20 / 1366) * screen.width;
+    pokemonIcon.height = (20 / 768) * screen.height;
     pokemonIcon.displayHeight = pokemonIcon.height;
     pokemonIcon.displayWidth = pokemonIcon.width;
     pokemonIcon.anims.play(`icon${pokemons[index].pokedexNumber}-idle`);
@@ -46,12 +46,13 @@ export default class PartyGraphicManager {
   ): Phaser.GameObjects.Image {
     const hpBar = this.scene.add
       .image(
-        panelX + panel.width / 2 - 30,
-        panelY + panel.height / 2 - 5,
+        panelX + panel.width / 2 - (30 / 1366) * screen.width,
+        panelY + panel.height / 2 - (5 / 768) * screen.height,
         'party-hp-bar'
       )
       .setOrigin(0, 0);
-    hpBar.width = 100;
+    hpBar.width = (100 / 1366) * screen.width;
+    hpBar.height = (hpBar.height / 768) * screen.height
     hpBar.height = hpBar.height;
     hpBar.displayWidth = hpBar.width;
     hpBar.displayHeight = hpBar.height;
@@ -63,8 +64,8 @@ export default class PartyGraphicManager {
   ): Phaser.GameObjects.Rectangle {
     const hpRect = this.scene.add
       .rectangle(
-        hpBar.x + 25.5,
-        hpBar.y + 5,
+        hpBar.x + (25.5 / 1366) * screen.width,
+        hpBar.y + (5 / 768) * screen.height,
         hpBar.width / 1.35,
         hpBar.height / 3.1,
         0x00ff4a
@@ -82,8 +83,8 @@ export default class PartyGraphicManager {
   ): Phaser.GameObjects.Text {
     const pokemonName = this.scene.add
       .text(
-        panelX + panel.width / 2 - 30,
-        panelY + panel.height / 2 - 20,
+        panelX + panel.width / 2 - (30 / 1366) * screen.width,
+        panelY + panel.height / 2 - (20 / 768) * screen.height,
         pokemons[index].name
       )
       .setOrigin(0, 0);
@@ -99,8 +100,8 @@ export default class PartyGraphicManager {
   ) {
     const hpText = this.scene.add
       .text(
-        panelX + panel.width / 2 + 5,
-        panelY + panel.height / 2 + 10,
+        panelX + panel.width / 2 + (5 / 1366) * screen.width,
+        panelY + panel.height / 2 + (10 / 768) * screen.height,
         `${healths[index]}/${healths[index]}`
       )
       .setOrigin(0, 0);
@@ -113,7 +114,7 @@ export default class PartyGraphicManager {
     panel: Phaser.GameObjects.Image
   ) {
     const levelText = this.scene.add
-      .text(panelX + 3, panelY + panel.height / 2 + 11, `Lv.50`)
+      .text(panelX + (3 / 1366) * screen.width, panelY + panel.height / 2 + (11 / 768) * screen.height, `Lv.50`)
       .setOrigin(0, 0);
     return levelText;
   }
@@ -123,10 +124,10 @@ export default class PartyGraphicManager {
     y: number
   ): Phaser.GameObjects.Image {
     const commandUnsel = this.scene.add
-      .image(bg.width - 150, y, 'command-unsel')
+      .image(bg.width - (150 / 1366) * screen.width, y, 'command-unsel')
       .setOrigin(0, 0);
-    commandUnsel.height = 30;
-    commandUnsel.width = 120;
+    commandUnsel.height = (30 / 1366) * screen.width;
+    commandUnsel.width = (120 / 768) * screen.height;
     commandUnsel.displayHeight = commandUnsel.height;
     commandUnsel.displayWidth = commandUnsel.width;
     commandUnsel.visible = false;
@@ -138,8 +139,8 @@ export default class PartyGraphicManager {
     index: number
   ) {
     const commandText = this.scene.add
-      .text(commandUnsel.x + 10, commandUnsel.y + 6, commandTexts[index], {
-        fontSize: 18,
+      .text(commandUnsel.x + (10 / 1366) * screen.width, commandUnsel.y + (6 / 768) * screen.height, commandTexts[index], {
+        fontSize: (18 / 1366) * screen.width,
       })
       .setOrigin(0, 0);
     commandText.visible = false;

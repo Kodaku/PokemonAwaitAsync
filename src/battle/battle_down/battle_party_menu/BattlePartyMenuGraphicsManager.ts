@@ -30,8 +30,8 @@ export default class BattlePartyMenuGraphicsManager {
     const partyMemberBox = this.scene.add
       .image(boxX, boxY, 'inactive-box')
       .setOrigin(0, 0);
-    partyMemberBox.width = 171;
-    partyMemberBox.height = 70;
+    partyMemberBox.width = screen.width * 0.1251830161;
+    partyMemberBox.height = screen.height * 0.0911458333;
     partyMemberBox.displayWidth = partyMemberBox.width;
     partyMemberBox.displayHeight = partyMemberBox.height;
     return partyMemberBox;
@@ -55,14 +55,14 @@ export default class BattlePartyMenuGraphicsManager {
 
   public createMemberText(boxX: number, boxY: number, pokemon: Pokemon) {
     const pokemonName = this.scene.add
-      .text(boxX + 40, boxY + 8, `${pokemon.name}`, {
-        fontSize: 12,
+      .text(boxX + screen.width * 0.0292825769, boxY + screen.height * 0.0104166667, `${pokemon.name}`, {
+        fontSize: screen.width * 0.0087847731,
         align: 'center',
       })
       .setOrigin(0, 0);
     const memberLevel = this.scene.add
-      .text(boxX + 10, boxY + 45, 'Lv.50', {
-        fontSize: 12,
+      .text(boxX + screen.width * 0.0073206442, boxY + screen.height * 0.05859375, 'Lv.50', {
+        fontSize: screen.width * 0.0087847731,
         align: 'center',
       })
       .setOrigin(0, 0);
@@ -70,10 +70,14 @@ export default class BattlePartyMenuGraphicsManager {
 
   public createPartyMemberSprite(boxX: number, boxY: number) {
     const partyMemberSprite = this.scene.add
-      .sprite(boxX + 4, boxY + 15, '')
+      .sprite(boxX + (screen.width * 0.0090282577), boxY + (screen.height * 0.01953125), '')
       .setOrigin(0, 0);
-    partyMemberSprite.width = 20;
-    partyMemberSprite.height = 20;
+    // partyMemberSprite.width = screen.width * 0.0146412884;
+    // partyMemberSprite.height = screen.height * 0.0260416667;
+    // partyMemberSprite.displayWidth = partyMemberSprite.width;
+    // partyMemberSprite.displayHeight = partyMemberSprite.height;
+    partyMemberSprite.width = (25 / 1366) * screen.width;
+    partyMemberSprite.height = (25 / 768) * screen.height;
     partyMemberSprite.displayWidth = partyMemberSprite.width;
     partyMemberSprite.displayHeight = partyMemberSprite.height;
     return partyMemberSprite;
@@ -81,9 +85,9 @@ export default class BattlePartyMenuGraphicsManager {
 
   public createHpBar(boxX: number, boxY: number) {
     const hpBar = this.scene.add
-      .image(boxX + 40, boxY + 30, 'hp-bar')
+      .image(boxX + screen.width * 0.0292825769, boxY + screen.height * 0.0390625, 'hp-bar')
       .setOrigin(0, 0);
-    hpBar.width = 100;
+    hpBar.width = screen.width * 0.073206442;
     hpBar.height = hpBar.height;
     hpBar.displayWidth = hpBar.width;
     hpBar.displayHeight = hpBar.height;
@@ -103,8 +107,8 @@ export default class BattlePartyMenuGraphicsManager {
     const rectWidth = this.computeRectWidth(currentHealth, maxHealth, maxWidth);
     const hpRect = this.scene.add
       .rectangle(
-        boxX + 64.5,
-        boxY + 36,
+        boxX + screen.width * 0.0472181552,
+        boxY + screen.height * 0.046875,
         rectWidth,
         hpBar.height / 3.1,
         0x00ff4a
@@ -130,8 +134,8 @@ export default class BattlePartyMenuGraphicsManager {
     index: number
   ) {
     const hpText = this.scene.add
-      .text(boxX + 70, boxY + 45, `${pokemon.ps}/${this.maxHealths[index]}`, {
-        fontSize: 14,
+      .text(boxX + (screen.width * 0.0512445095), boxY + (screen.height * 0.05859375), `${pokemon.ps}/${this.maxHealths[index]}`, {
+        fontSize: screen.width * 0.0102489019,
         align: 'center',
       })
       .setOrigin(0, 0);
@@ -140,10 +144,10 @@ export default class BattlePartyMenuGraphicsManager {
 
   public createBackImage() {
     const backImage = this.scene.add
-      .image(285, 248, 'back-arrow')
+      .image(screen.width * 0.2086383602, screen.height * 0.3229166667, 'back-arrow')
       .setOrigin(0, 0);
-    backImage.width = 40;
-    backImage.height = 40;
+    backImage.width = screen.width * 0.0292825769;
+    backImage.height = screen.height * 0.0520833333;
     backImage.displayWidth = backImage.width;
     backImage.displayHeight = backImage.height;
     return backImage;

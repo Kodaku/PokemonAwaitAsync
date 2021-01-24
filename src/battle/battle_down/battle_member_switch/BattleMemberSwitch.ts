@@ -103,6 +103,9 @@ export default class BattleMemberSwitch extends Phaser.Scene {
     for (let i = 0; i < this.pokemons.length; i++) {
       createIconAnims(this.anims, this.pokemons[i].pokedexNumber);
     }
+    const menuSelectSound = this.sound.add("menu-select-sound");
+    const menuChooseSound = this.sound.add("menu-choose-sound");
+    const menuCancel = this.sound.add("cancel-sound");
     const graphicsManager = new BattleMemberSwitchGraphicsManager(this);
     const bg = graphicsManager.createBackground();
     // Big Box image and selector
@@ -126,6 +129,7 @@ export default class BattleMemberSwitch extends Phaser.Scene {
     this.input.keyboard.on(
       'keydown-R',
       () => {
+        menuSelectSound.play();
         this.keyCode = Phaser.Input.Keyboard.KeyCodes.R;
         this.updateCursor();
         this.renderAll();
@@ -136,6 +140,7 @@ export default class BattleMemberSwitch extends Phaser.Scene {
       'keydown-Z',
       () => {
         if (this.cursor !== -1) {
+          menuChooseSound.play();
           this.notifyUpperScreen();
         }
       },
@@ -148,6 +153,7 @@ export default class BattleMemberSwitch extends Phaser.Scene {
         console.log(this.bPressedCount);
         if (this.bPressedCount > 0) {
           this.switchOff();
+          menuCancel.play();
           this.scene.add('battle-party-menu', BattlePartyMenu, true, {
             sceneToRemove: 'battle-member-switch',
             bPressedCount: -1,

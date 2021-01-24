@@ -83,6 +83,7 @@ export default class Game extends Phaser.Scene {
     // console.log(this.user);
     this.townSound = this.sound.add('first-town-sound');
     const bump = this.sound.add('bump-sound');
+    const openMenuSound = this.sound.add("open-menu-sound");
     this.id = this.user.userID;
     this.scene.remove(data.sceneName);
     this.couple = await getOpponentPromise(this.id);
@@ -135,6 +136,7 @@ export default class Game extends Phaser.Scene {
       if (this.gameState == GameState.PLAY) {
         this.gameState = GameState.MENU;
         this.player.setBusy(true);
+        openMenuSound.play();
         sceneEvents.emit('S-pressed-play');
       }
     });
@@ -175,6 +177,7 @@ export default class Game extends Phaser.Scene {
         switch (this.menuCursor) {
           case IconSelectable.POKEMON: {
             this.removeEventsAndClearIntervals();
+            this.sound.stopAll();
             this.scene.add('party-menu-up', PartyMenuUp, true, {
               user: this.user,
               sceneName: 'game',
@@ -184,6 +187,7 @@ export default class Game extends Phaser.Scene {
           }
           case IconSelectable.BAG: {
             this.removeEventsAndClearIntervals();
+            this.sound.stopAll();
             this.scene.add('bag-menu-up', BagMenuUp, true, {
               user: this.user,
               sceneName: 'game',
@@ -237,8 +241,8 @@ export default class Game extends Phaser.Scene {
       .rectangle(
         0,
         0,
-        this.game.config.width as number,
-        this.game.config.height as number,
+        screen.width,
+        screen.height / 2,
         0x000000
       )
       .setOrigin(0, 0);
@@ -261,7 +265,7 @@ export default class Game extends Phaser.Scene {
         if (this.rect.alpha >= 1) {
           isFading = true;
           count++;
-          if (count >= 4) {
+          if (count >= 6) {
             this.beginUpperBattle();
             clearInterval(fadeInterval);
             clearInterval(refadeInterval);
@@ -491,8 +495,8 @@ export default class Game extends Phaser.Scene {
   private updateOpponent(userOpponent: User): void {
     let opponent = this.players[userOpponent.userID];
     opponent.playerAnim = userOpponent.anim;
-    opponent.x = userOpponent.x + 15;
-    opponent.y = userOpponent.y + 15;
+    opponent.x = userOpponent.x + (15 / 1366) * screen.width;
+    opponent.y = userOpponent.y + (15 / 768) * screen.height;
     opponent.velocity = userOpponent.velocity;
     this.opponent = userOpponent;
   }

@@ -75,26 +75,26 @@ export default class BagMenuUp extends Phaser.Scene {
     }
 
     this.itemImage = this.add
-      .image(152, 97, `item${this.itemsImagesIndex[0][0]}`)
+      .image(screen.width * 0.1112737921, screen.height * 0.1263020833, `item${this.itemsImagesIndex[0][0]}`)
       .setOrigin(0, 0);
-    this.itemImage.width = 40;
-    this.itemImage.height = 40;
+    this.itemImage.width = screen.width * 0.0292825769;
+    this.itemImage.height = screen.height * 0.0520833333;
     this.itemImage.displayWidth = this.itemImage.width;
     this.itemImage.displayHeight = this.itemImage.height;
 
     this.itemName = this.add
-      .text(this.itemImage.x - 31, this.itemImage.y - 20, this.itemNames[0][0])
+      .text(this.itemImage.x - screen.width * 0.0226939971, this.itemImage.y - screen.height * 0.0260416667, this.itemNames[0][0])
       .setOrigin(0, 0);
 
     this.itemDescription = this.add.text(
-      this.itemImage.x - 135,
-      this.itemImage.y + 50,
+      this.itemImage.x - screen.width * 0.09882866969,
+      this.itemImage.y + screen.height * 0.0651041667,
       this.itemDescriptions[0][0]
     );
     this.itemQuantity = this.add
       .text(
-        this.itemImage.x + 55,
-        this.itemImage.y + 10,
+        this.itemImage.x + screen.width * 0.0402635432,
+        this.itemImage.y + screen.height * 0.0130208333,
         `x${this.items[0][0].quantity}`
       )
       .setOrigin(0, 0);

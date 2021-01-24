@@ -258,10 +258,10 @@ export default class PartyMenuUp extends Phaser.Scene {
 
   private makeReference() {
     return {
-      x: this.bg.x + 120,
-      y: this.bg.y + 150,
-      width: 100,
-      height: 50,
+      x: this.bg.x + (120 / 1366) * screen.width,
+      y: this.bg.y + (150 / 768) * screen.height,
+      width: (100 / 1366) * screen.width,
+      height: (50 / 768) * screen.height,
       referenceName: 'Prof',
     };
   }

@@ -47,6 +47,9 @@ export default class BattleBag extends Phaser.Scene {
     this.items = this.parseData(data.itemsToParse);
     this.itemsNames = await this.requestAllTexts(this.items);
     console.log('Items in Battle Bag: ', this.items);
+    const menuSelectSound = this.sound.add("menu-select-sound");
+    const menuChooseSound = this.sound.add("menu-choose-sound");
+    const menuCancel = this.sound.add("cancel-sound");
     this.cursor = -1;
     const graphicsManager = new BattleBagGraphicsManager(this);
     const bg = graphicsManager.createBackground();
@@ -80,6 +83,7 @@ export default class BattleBag extends Phaser.Scene {
     this.input.keyboard.on(
       'keydown-R',
       () => {
+        menuSelectSound.play();
         this.keyCode = Phaser.Input.Keyboard.KeyCodes.R;
         this.updateCursor();
         this.renderAll();
@@ -89,6 +93,7 @@ export default class BattleBag extends Phaser.Scene {
     this.input.keyboard.on(
       'keydown-L',
       () => {
+        menuSelectSound.play();
         this.keyCode = Phaser.Input.Keyboard.KeyCodes.L;
         this.updateCursor();
         this.renderAll();
@@ -98,6 +103,7 @@ export default class BattleBag extends Phaser.Scene {
     this.input.keyboard.on(
       'keydown-U',
       () => {
+        menuSelectSound.play();
         this.keyCode = Phaser.Input.Keyboard.KeyCodes.U;
         this.updateCursor();
         this.renderAll();
@@ -107,6 +113,7 @@ export default class BattleBag extends Phaser.Scene {
     this.input.keyboard.on(
       'keydown-D',
       () => {
+        menuSelectSound.play();
         this.keyCode = Phaser.Input.Keyboard.KeyCodes.D;
         this.updateCursor();
         this.renderAll();
@@ -116,6 +123,7 @@ export default class BattleBag extends Phaser.Scene {
     this.input.keyboard.on(
       'keydown-Z',
       () => {
+        menuChooseSound.play();
         if (this.cursor !== -1) {
           this.notifyUpperScreen();
           this.switchOff();
@@ -130,6 +138,7 @@ export default class BattleBag extends Phaser.Scene {
         this.bPressedCount++;
         if (this.bPressedCount > 0) {
           this.switchOff();
+          menuCancel.play();
           this.scene.add('battle-menu', BattleMenu, true, {
             sceneToRemove: 'battle-bag',
             bPressedCount: 0,

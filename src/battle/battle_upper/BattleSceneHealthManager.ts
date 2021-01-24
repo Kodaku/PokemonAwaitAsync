@@ -28,7 +28,7 @@ const sendPokemonHealthPromise = (
   });
 };
 
-const hpRectMaxWidth = 69;
+const hpRectMaxWidth = screen.width * 0.0505124451;
 
 export default class BattleSceneHealthManager {
   private playerPokemonMaxHealth!: number;

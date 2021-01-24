@@ -70,6 +70,8 @@ export default class BattleMenu extends Phaser.Scene {
     // this.itemsNames = await this.requestAllTexts(this.items);
     // console.log('Items ', this.items);
     // console.log('Item Names', this.itemsNames);
+    const menuSelectSound = this.sound.add("menu-select-sound");
+    const menuChooseSound = this.sound.add("menu-choose-sound");
     const graphicsManager = new BattleMenuGraphicsManager(this);
     const bg = graphicsManager.createBackground();
     // Fight option and selector
@@ -103,6 +105,10 @@ export default class BattleMenu extends Phaser.Scene {
         playerPokeBallX,
         this.playerHealths[i]
       );
+      playerPokeBall.width = screen.width * 0.02219619327;
+      playerPokeBall.height = screen.height * 0.0390625;
+      playerPokeBall.displayWidth = playerPokeBall.width;
+      playerPokeBall.displayHeight = playerPokeBall.height;
     }
     let enemyPokeBallX = screen.width * 0.0805270864;
     for (let i = 0; i < 6; i++, enemyPokeBallX += screen.width * 0.0146412884) {
@@ -115,6 +121,7 @@ export default class BattleMenu extends Phaser.Scene {
     this.input.keyboard.on(
       'keydown-R',
       () => {
+        menuSelectSound.play();
         this.keyCode = Phaser.Input.Keyboard.KeyCodes.R;
         this.updateCursor();
         this.renderAll();
@@ -124,6 +131,7 @@ export default class BattleMenu extends Phaser.Scene {
     this.input.keyboard.on(
       'keydown-L',
       () => {
+        menuSelectSound.play();
         this.keyCode = Phaser.Input.Keyboard.KeyCodes.L;
         this.updateCursor();
         this.renderAll();
@@ -133,6 +141,7 @@ export default class BattleMenu extends Phaser.Scene {
     this.input.keyboard.on(
       'keydown-Z',
       () => {
+        menuChooseSound.play();
         this.notifyUpperScreen();
         this.switchMenu();
       },

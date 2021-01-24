@@ -74,7 +74,7 @@ export default class BagDownRenderManager {
         slider.setY(
           (itemsCursor[animsCursor] * sliderEndY) /
             this.itemNames[animsCursor].length +
-            43
+            (screen.height * 0.0559895833)
         );
         slider.visible = true;
       } else {

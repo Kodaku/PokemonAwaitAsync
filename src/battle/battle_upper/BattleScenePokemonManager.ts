@@ -30,15 +30,15 @@ export default class BattleScenePokemonManager {
   }
 
   public initializePlayerPosition() {
-    this.playerPokemonStartX = 90;
+    this.playerPokemonStartX = screen.width * 0.065885798;
     this.playerPokemonCurrentX = this.playerPokemonStartX;
-    this.playerPokemonEndX = 130;
+    this.playerPokemonEndX = screen.width * 0.0951683748;
   }
 
   public initializeOpponentPosition() {
-    this.opponentPokemonStartX = 250;
+    this.opponentPokemonStartX = screen.width * 0.1830161054;
     this.opponentPokemonCurrentX = this.opponentPokemonStartX;
-    this.opponentPokemonEndX = 210;
+    this.opponentPokemonEndX = screen.width * 0.1537335286;
   }
 
   public createAnims() {
@@ -144,11 +144,11 @@ export default class BattleScenePokemonManager {
   }
 
   public moveForwardOpponentPokemon() {
-    this.opponentPokemon.setX((this.opponentPokemonCurrentX -= 2));
+    this.opponentPokemon.setX((this.opponentPokemonCurrentX -= screen.width * 0.0029282577));
   }
 
   public moveBackwardOpponentPokemon() {
-    this.opponentPokemon.setX((this.opponentPokemonCurrentX += 2));
+    this.opponentPokemon.setX((this.opponentPokemonCurrentX += screen.width * 0.0029282577));
   }
 
   public stopOpponentPokemon() {
@@ -180,11 +180,11 @@ export default class BattleScenePokemonManager {
   }
 
   public moveForwardPlayerPokemon() {
-    this.playerPokemon.setX((this.playerPokemonCurrentX += 2));
+    this.playerPokemon.setX((this.playerPokemonCurrentX += screen.width * 0.0029282577));
   }
 
   public moveBackwardPlayerPokemon() {
-    this.playerPokemon.setX((this.playerPokemonCurrentX -= 2));
+    this.playerPokemon.setX((this.playerPokemonCurrentX -= screen.width * 0.0029282577));
   }
 
   public stopPlayerPokemon() {

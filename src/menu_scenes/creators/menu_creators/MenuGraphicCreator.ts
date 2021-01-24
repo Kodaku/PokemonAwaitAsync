@@ -26,10 +26,10 @@ export default class MenuGraphicCreator {
     index: number
   ): Phaser.GameObjects.Image {
     const icon = this.scene.add
-      .image(panelX + 3, panelY + panel.height / 4 - 5, iconsUnselected[index])
+      .image(panelX + (3 / 1366) * screen.width, panelY + panel.height / 4 - (5 / 768) * screen.height, iconsUnselected[index])
       .setOrigin(0, 0);
-    icon.width = 30;
-    icon.height = 35;
+    icon.width = (30 / 1366) * screen.width;
+    icon.height = (35 / 768) * screen.height;
     icon.displayWidth = icon.width;
     icon.displayHeight = icon.height;
     return icon;
@@ -43,7 +43,7 @@ export default class MenuGraphicCreator {
   ) {
     const text = this.scene.add.text(
       panelX + panel.width / 3,
-      panelY + panel.height / 2 - 5,
+      panelY + panel.height / 2 - (5 / 768) * screen.height,
       iconText[index]
     );
     return text;
@@ -53,8 +53,8 @@ export default class MenuGraphicCreator {
     const exit = this.scene.add
       .image(menu.width / 1.1, menu.height / 1.15, 'exit-1')
       .setOrigin(0, 0);
-    exit.width = 30;
-    exit.height = 30;
+    exit.width = (30 / 1366) * screen.width;
+    exit.height = (30 / 768) * screen.height;
     exit.displayWidth = exit.width;
     exit.displayHeight = exit.height;
     return exit;
